@@ -1,0 +1,6 @@
+
+*.pyc
+
+.idea/
+test_photos/
+.filelist.db
