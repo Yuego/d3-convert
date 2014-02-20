@@ -49,6 +49,8 @@ def blend_tif(photos, dst):
         '-o',
     ]
 
+    log.status = 'Blending directory `{0}`'.format(photos[0].tif_dir)
+
     bracketed = check_bracketing(photos)
 
     q = Queue()
@@ -103,6 +105,7 @@ def blend_tif(photos, dst):
         blend_file = os.path.join(dst, '.blend')
         with open(blend_file, 'w') as f:
             f.write('ok')
+        log.status = 'Blend complete'
 
     return results
 

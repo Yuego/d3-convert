@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
-import sys
 
 from d3_convert.version import __version__
-
-for cmd in ('egg_info', 'develop', 'build_sphinx', 'upload_sphinx'):
-    if cmd in sys.argv:
-        from setuptools import setup
 
 setup(
     name='d3_convert',
@@ -19,10 +14,12 @@ setup(
     description='D3 Converter',
     long_description=open('README.rst').read(),
 
-    license='',
+    license='MIT',
     install_requires=[
-        'scandir',
+        'docopt',
         'gi',  # gexiv2
+        'lxml',
+        'scandir',
     ],
     packages=find_packages(),
     include_package_data=True,

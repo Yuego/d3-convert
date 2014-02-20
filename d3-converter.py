@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #coding: utf-8
-"""Converter
+"""D3 Converter
 
 Usage:
     convert <src> [--dst=<dstdir>] [--force] [--autowb|--nowb] [--verbose]
@@ -37,6 +37,9 @@ if __name__ == '__main__':
         autowb = arguments.pop('--autowb', False)
         nowb = arguments.pop('--nowb', False)
         force = arguments.pop('--force', False)
-        log.enabled = arguments.pop('--verbose', False)
+
+        verbose = arguments.pop('--verbose', False)
+        if verbose:
+            log.level = log.DEBUG
 
         convert_all(src=src, dst=dst, force=force, autowb=autowb, nowb=nowb)

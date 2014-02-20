@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #coding: utf-8
-"""Blender
+"""D3 Blender
 
 Usage:
     blend <src> [--dst=<dstdir>] [--force] [--verbose]
@@ -37,6 +37,8 @@ if __name__ == '__main__':
 
         force = arguments.pop('--force', False)
 
-        log.enabled = arguments.pop('--verbose', False)
+        verbose = arguments.pop('--verbose', False)
+        if verbose:
+            log.level = log.DEBUG
 
         blend_dir(src, dst, force)

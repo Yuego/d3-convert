@@ -2,13 +2,45 @@
 from __future__ import unicode_literals, absolute_import
 
 
+
 class Log(object):
 
-    def __init__(self):
-        self.enabled = True
+    DEBUG = 0
+    INFO = 1
+    WARNING = 2
+    ERROR = 3
 
-    def trace(self, *args):
-        if self.enabled:
-            print(' '.join(args))
+    def __init__(self):
+        self.level = Log.INFO
+
+        self._status = ''
+
+    def _get_status(self):
+        return self._status
+
+    def _set_status(self, value):
+        self.debug(value)
+
+        self._status = value
+    status = property(fget=_get_status, fset=_set_status)
+
+    def trace(self, message):
+        print(message)
+
+    def debug(self, message):
+        if self.level == Log.DEBUG:
+            self.trace('DEBUG: {0}'.format(message))
+
+    def error(self, message):
+        if self.level <= Log.ERROR:
+            self.trace('ERROR: {0}'.format(message))
+
+    def warning(self, message):
+        if self.level <= Log.WARNING:
+            self.trace('WARNING: {0}'.format(message))
+
+    def info(self, message):
+        if self.level <= Log.INFO:
+            self.trace('INFO: {0}'.format(message))
 
 log = Log()

@@ -99,7 +99,7 @@ def convert_cr2(photos, dst, autowb=False, nowb=False):
             except Empty:
                 return
 
-            log.trace('processing file', photo.raw)
+            log.debug('Processing file `{0}`'.format(photo.raw))
             cmd = base_cmd[:]
             cmd.append(photo.raw)
             p = Process(cmd, cwd=dst)
@@ -108,7 +108,7 @@ def convert_cr2(photos, dst, autowb=False, nowb=False):
             result = ' '.join([p.result, p.errors]).lower()
             if 'saved' in result:
                 photo.tif_dir = dst
-                log.trace('saved to', photo.tif)
+                log.debug('`{0}` converted to `{1}`'.format(photo.raw, photo.tif))
 
     threads = [threading.Thread(target=worker) for _i in range(cpus)]
 
@@ -122,10 +122,10 @@ def convert_cr2(photos, dst, autowb=False, nowb=False):
         convert_file = os.path.join(dst, convert_filename)
         with open(convert_file, 'w') as f:
             f.write('ok')
-        log.trace('conwert written')
+        log.status = 'Dir `{0}` converted'.format(photos[0].raw_dir)
     else:
-        log.trace('cant write file')
-        log.trace(repr(results))
+        log.status = 'Dir `{0}` converted with errors'.format(photos[0].raw_dir)
+        log.warning(repr(results))
 
     return results
 
@@ -138,7 +138,7 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
         # Пропускаем специальные каталоги
         name = os.path.basename(srcpath)
         if name in skip_names:
-            log.trace('Skip blacklisted', srcpath)
+            log.debug('Skip blacklisted `{0}`'.format(srcpath))
             continue
 
         dir_mtime = os.stat(srcpath).st_mtime
@@ -151,15 +151,15 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
         if not force:
             # Пропускаем помеченные каталоги
             if os.path.exists(convert_file):
-                log.trace('Skip converted dir', srcpath)
+                log.debug('Skip converted dir `{0}`'.format(srcpath))
                 continue
             # Пропускаем каталоги, созданные или изменённые недавно
             elif (int(time()) - dir_mtime) < 60 * 5:
-                log.trace('Skip new dir', srcpath)
+                log.debug('Skip new dir `{0}`'.format(srcpath))
                 continue
             # Пропускаем каталоги, пролежавшие больше 2 недель
             elif (int(time()) - dir_mtime) > 60 * 60 * 24 * 14:
-                log.trace('Skip too old dir', srcpath)
+                log.debug('Skip too old dir: `{0}`'.format(srcpath))
                 continue
 
         cr2_files = []
@@ -172,7 +172,7 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
                 cr2_files.append(photo)
 
         if cr2_files:
-            log.trace('processing directory: ', srcpath)
+            log.status = 'Processing directory: `{0}`'.format(srcpath)
 
             if force:
                 shutil.rmtree(dstpath, ignore_errors=True)
@@ -196,4 +196,4 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
             if not os.path.exists(blend_file):
                 blend_tif(photos=cr2_files, dst=blend_dst)
         else:
-            log.trace('Dir', srcpath, 'is empty. Skipping')
+            log.debug('Skip empty dir `{0}`'.format(srcpath))
