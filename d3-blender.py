@@ -17,23 +17,11 @@ Options:
 from __future__ import unicode_literals, absolute_import
 
 from d3_convert.blend import blend_dir
-from d3_convert import db
 from d3_convert.log import log
-from d3_convert.db import FileList
-from d3_convert.photo import TifPhoto
-from d3_convert.utils import makedirs
 
 from d3_convert.version import __version__
 from docopt import docopt
 import os
-import scandir
-import shutil
-
-#from sqlalchemy import create_engine
-#from sqlalchemy.orm import sessionmaker
-#Session = sessionmaker()
-#session = Session()
-
 
 
 if __name__ == '__main__':
