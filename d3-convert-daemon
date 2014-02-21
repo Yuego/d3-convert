@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+#coding: utf-8
+"""D3 Convert Daemon
+
+Usage:
+    d3-convert-daemon (-h | --help)
+    d3-convert-daemon --version
+
+Options:
+    -h --help       Show this screen.
+    --version       Show version
+
+"""
+
+from __future__ import unicode_literals, absolute_import
+from d3_convert.version import __version__
+from docopt import docopt
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__, version='D3 Convert Daemon v' + __version__)
