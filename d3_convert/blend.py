@@ -92,6 +92,7 @@ def blend_tif(photos, dst):
                 results['blended'].append(br)
             else:
                 results['errors'].append(result)
+            log.progress()
 
     threads = [threading.Thread(target=worker) for _i in range(cpus)]
 

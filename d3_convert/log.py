@@ -1,6 +1,7 @@
 #coding: utf-8
 from __future__ import unicode_literals, absolute_import
 
+import sys
 
 
 class Log(object):
@@ -11,7 +12,7 @@ class Log(object):
     ERROR = 3
 
     def __init__(self):
-        self.level = Log.INFO
+        self.level = Log.WARNING
 
         self._status = ''
 
@@ -42,5 +43,10 @@ class Log(object):
     def info(self, message):
         if self.level <= Log.INFO:
             self.trace('INFO: {0}'.format(message))
+
+    def progress(self):
+        if self.level == Log.INFO:
+            sys.stdout.write('.')
+            sys.stdout.flush()
 
 log = Log()
