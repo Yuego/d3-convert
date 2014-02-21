@@ -3,7 +3,8 @@ from __future__ import unicode_literals, absolute_import
 
 
 try:
-    from gi.repository import GExiv2 as exif
+    from gi.repository import GExiv2
+    exif = GExiv2.Metadata
 except ImportError:
     class exif(object):
         def __init__(self, path):

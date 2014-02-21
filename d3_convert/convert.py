@@ -107,7 +107,6 @@ def convert_cr2(photos, dst, autowb=False, nowb=False):
 
             result = ' '.join([p.result, p.errors]).lower()
             if 'saved' in result:
-                photo.tif_dir = dst
                 log.debug('`{0}` converted to `{1}`'.format(photo.raw, photo.tif))
 
     threads = [threading.Thread(target=worker) for _i in range(cpus)]
