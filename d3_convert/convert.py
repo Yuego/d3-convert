@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, absolute_import
 
 from d3_convert.blend import blend_tif
+from d3_convert.lock import is_locked
 from d3_convert.log import log
 from d3_convert.photo import CR2Photo
 from d3_convert.process import Process
@@ -86,7 +87,7 @@ def convert_cr2(photos, dst, autowb=False, nowb=False):
     q = Queue()
     for p in photos:
         q.put(p)
-    total_photos = len(photos)
+    #total_photos = len(photos)
 
     results = {
         'converted': [],
@@ -100,7 +101,7 @@ def convert_cr2(photos, dst, autowb=False, nowb=False):
             except Empty:
                 return
 
-            log.debug('Processing file `{0}`'.format(photo.raw))
+            log.debug('Обработка файла `{0}`'.format(photo.raw))
             cmd = base_cmd[:]
             cmd.append(photo.raw)
             p = Process(cmd, cwd=dst)
@@ -108,7 +109,7 @@ def convert_cr2(photos, dst, autowb=False, nowb=False):
 
             result = ' '.join([p.result, p.errors]).lower()
             if 'saved' in result:
-                log.debug('`{0}` converted to `{1}`'.format(photo.raw, photo.tif))
+                log.debug('`{0}` сконвертирован в `{1}`'.format(photo.raw, photo.tif))
             log.progress()
 
     threads = [threading.Thread(target=worker) for _i in range(cpus)]
@@ -123,9 +124,9 @@ def convert_cr2(photos, dst, autowb=False, nowb=False):
         convert_file = os.path.join(dst, convert_filename)
         with open(convert_file, 'w') as f:
             f.write('ok')
-        log.status = 'Dir `{0}` converted'.format(photos[0].raw_dir)
+        log.status = 'Каталог `{0}` сконвертирован'.format(photos[0].raw_dir)
     else:
-        log.status = 'Dir `{0}` converted with errors'.format(photos[0].raw_dir)
+        log.status = 'Каталог `{0}` сконвертирован с ошибками'.format(photos[0].raw_dir)
         log.warning(repr(results))
 
     return results
@@ -139,7 +140,7 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
         # Пропускаем специальные каталоги
         name = os.path.basename(srcpath)
         if name in skip_names:
-            log.debug('Skip blacklisted `{0}`'.format(srcpath))
+            log.debug('Пропуск служебных каталогов `{0}`'.format(srcpath))
             continue
 
         dir_mtime = os.stat(srcpath).st_mtime
@@ -152,15 +153,19 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
         if not force:
             # Пропускаем помеченные каталоги
             if os.path.exists(convert_file):
-                log.debug('Skip converted dir `{0}`'.format(srcpath))
+                log.debug('Пропуск сконвертированного каталога `{0}`'.format(srcpath))
                 continue
             # Пропускаем каталоги, созданные или изменённые недавно
             elif (int(time()) - dir_mtime) < 60 * 5:
-                log.debug('Skip recently modified dir `{0}`'.format(srcpath))
+                log.debug('Пропуск недавно изменённого каталога `{0}`'.format(srcpath))
                 continue
             # Пропускаем каталоги, пролежавшие больше 2 недель
             elif (int(time()) - dir_mtime) > 60 * 60 * 24 * 14:
-                log.debug('Skip too old dir: `{0}`'.format(srcpath))
+                log.debug('Пропуск "старого" каталога: `{0}`'.format(srcpath))
+                continue
+            elif is_locked(srcpath, 'torrent'):
+                log.warning('Пропуск занятого торрентом каталога: `{0}`'.format(srcpath))
+                log.warning('Дождитесь завершения загрузки, либо удалите торрент из торрент-клиента.')
                 continue
 
         cr2_files = []
@@ -173,7 +178,11 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
                 cr2_files.append(photo)
 
         if cr2_files:
-            log.status = 'Processing directory: `{0}`'.format(srcpath)
+            if is_locked(srcpath, 'ufraw-batch') or is_locked(srcpath, 'enfuse'):
+                log.status = 'Каталог `{0}` уже обрабатывается другой копией конвертера. Пропускаем'.format(srcpath)
+                continue
+
+            log.status = 'Обработка каталога: `{0}`'.format(srcpath)
 
             if force:
                 shutil.rmtree(dstpath, ignore_errors=True)
@@ -197,4 +206,4 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
             if not os.path.exists(blend_file):
                 blend_tif(photos=cr2_files, dst=blend_dst)
         else:
-            log.debug('Skip empty dir `{0}`'.format(srcpath))
+            log.debug('Пропуск "пустого" каталога `{0}`'.format(srcpath))
