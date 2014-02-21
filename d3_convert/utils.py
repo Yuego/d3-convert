@@ -3,8 +3,11 @@ from __future__ import unicode_literals, absolute_import
 
 import multiprocessing
 import os
+import re
 
 cpus = multiprocessing.cpu_count()
+
+path_re = re.compile(r'[^a-z0-9]*', re.I)
 
 
 def makedirs(path, mode=0o777):

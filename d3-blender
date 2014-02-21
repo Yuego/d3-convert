@@ -3,7 +3,7 @@
 """D3 Blender
 
 Usage:
-    blend <src> [--dst=<dstdir>] [--force] [--verbose]
+    blend <src> [--dst=<dstdir>] [--force] [--verbose|--debug] [--lockname=<name>]
     blend (-h | --help)
     blend --version
 
@@ -12,13 +12,17 @@ Options:
     --version       Show version
     --dst=<dstdir>  Set destination dir.
     --force         Force reblend existing files
+    --verbose           Display info level messages
+    --debug             Display debug level messages
+    --lockname=<name>   Lockfile name
 
 """
 from __future__ import unicode_literals, absolute_import
 
 from d3_convert.blend import blend_dir
 from d3_convert.log import log
-
+from d3_convert.singleton import SingleInstance
+from d3_convert.utils import path_re
 from d3_convert.version import __version__
 from docopt import docopt
 import os
@@ -38,7 +42,16 @@ if __name__ == '__main__':
         force = arguments.pop('--force', False)
 
         verbose = arguments.pop('--verbose', False)
+        debug = arguments.pop('--debug', False)
         if verbose:
+            log.level = log.INFO
+        elif debug:
             log.level = log.DEBUG
+
+        lockname = arguments.pop('--lockname', '')
+        if lockname is None:
+            lockname = path_re.sub('', src).lower()
+
+        instance = SingleInstance(flavor_id=lockname)
 
         blend_dir(src, dst, force)

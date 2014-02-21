@@ -24,6 +24,7 @@ from __future__ import unicode_literals, absolute_import
 from d3_convert.convert import convert_all
 from d3_convert.log import log
 from d3_convert.singleton import SingleInstance
+from d3_convert.utils import path_re
 from d3_convert.version import __version__
 from docopt import docopt
 import os
@@ -52,6 +53,9 @@ if __name__ == '__main__':
             log.level = log.DEBUG
 
         lockname = arguments.pop('--lockname', '')
+        if lockname is None:
+            lockname = path_re.sub('', src).lower()
+
         instance = SingleInstance(flavor_id=lockname)
 
         convert_all(src=src, dst=dst, force=force, autowb=autowb, nowb=nowb)

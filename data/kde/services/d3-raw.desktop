@@ -1,0 +1,30 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=KonqPopupMenu/Plugin
+MimeType=inode/directory;x-directory/normal;
+Actions=convert-dir-wb;convert-dir-nowb;convert-dir;blend;
+X-KDE-Priority=TopLevel
+X-KDE-Submenu=RAW_NEW
+Icon=luna
+Encoding=UTF-8
+Name=Работа с исходниками
+
+[Desktop Action convert-dir-wb]
+Exec=konsole -e d3-converter %f --force --verbose --autowb
+Name[ru]=Конвертировать каталог (авто ББ)
+Name=Convert directory (auto WB)
+
+[Desktop Action convert-dir-nowb]
+Exec=konsole -e d3-converter %f --force --verbose --nowb
+Name[ru]=Конвертировать каталог (игнорировать настройки ББ)
+Name=Convert directory (ignore WB settings)
+
+[Desktop Action convert-dir]
+Exec=konsole -e d3-converter %f --force --verbose
+Name[ru]=Конвертировать каталог
+Name=Convert directory
+
+[Desktop Action blend]
+Exec=konsole -e d3-blender %f --force --verbose
+Name[ru]=Свести брэкетинг в каталоге
+Name=Blend bracketed images
