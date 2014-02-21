@@ -19,7 +19,7 @@ class Log(object):
         return self._status
 
     def _set_status(self, value):
-        self.debug(value)
+        self.info(value)
 
         self._status = value
     status = property(fget=_get_status, fset=_set_status)

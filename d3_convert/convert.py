@@ -155,7 +155,7 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
                 continue
             # Пропускаем каталоги, созданные или изменённые недавно
             elif (int(time()) - dir_mtime) < 60 * 5:
-                log.debug('Skip new dir `{0}`'.format(srcpath))
+                log.debug('Skip recently modified dir `{0}`'.format(srcpath))
                 continue
             # Пропускаем каталоги, пролежавшие больше 2 недель
             elif (int(time()) - dir_mtime) > 60 * 60 * 24 * 14:

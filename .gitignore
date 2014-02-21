@@ -4,3 +4,12 @@
 .idea/
 test_photos/
 .filelist.db
+
+.tox/
+build/
+dist/
+*.egg-info
+.coverage
+
+test_data/
+d3-*

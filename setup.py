@@ -17,11 +17,11 @@ setup(
     license='MIT',
     install_requires=[
         'docopt',
-        'gi',  # gexiv2
+        #'gi',  # gexiv2
         'lxml',
-        'scandir',
+        #'scandir',
     ],
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests', 'tests.*']),
     include_package_data=True,
     classifiers=[
         'Development Status :: 1 - Alpha',
@@ -29,8 +29,8 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: Russian',
         'Programming Language :: Python',
-        #'Programming Language :: Python :: 2',
-        #'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Topic :: Software Development :: Libraries :: Python Modules',
