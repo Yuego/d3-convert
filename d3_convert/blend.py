@@ -106,6 +106,9 @@ def blend_tif(photos, dst):
         with open(blend_file, 'w') as f:
             f.write('ok')
         log.status = 'Blend complete'
+    else:
+        log.status = 'Blending complete with errors'
+        log.debug(repr(results['errors']))
 
     return results
 

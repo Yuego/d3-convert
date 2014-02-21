@@ -17,7 +17,7 @@ setup(
     license='MIT',
     install_requires=[
         'docopt',
-        #'gi',  # gexiv2
+        #'gi',  # media-libs/gexiv2
         'lxml',
         #'scandir',
     ],
