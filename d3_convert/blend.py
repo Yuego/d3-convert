@@ -49,7 +49,7 @@ def blend_tif(photos, dst):
         '-o',
     ]
 
-    log.status = 'Blending directory `{0}`'.format(photos[0].tif_dir)
+    log.status = 'Сведение файлов в директории `{0}`'.format(photos[0].tif_dir)
 
     bracketed = check_bracketing(photos)
 
@@ -92,11 +92,18 @@ def blend_tif(photos, dst):
                 results['blended'].append(br)
             else:
                 results['errors'].append(result)
+
+            message = 'Файлы {0} сведены в {1}'.format(
+                ', '.join([p.tif for p in br]),
+                dst_path,
+            )
+            log.debug(message)
             log.progress()
 
     threads = [threading.Thread(target=worker) for _i in range(cpus)]
 
     for thread in threads:
+        thread.setDaemon(True)
         thread.start()
 
     for thread in threads:
@@ -106,9 +113,9 @@ def blend_tif(photos, dst):
         blend_file = os.path.join(dst, '.blend')
         with open(blend_file, 'w') as f:
             f.write('ok')
-        log.status = 'Blend complete'
+        log.status = 'Сведение завершено'
     else:
-        log.status = 'Blending complete with errors'
+        log.status = 'Сведение завершено с ошибками'
         log.debug(repr(results['errors']))
 
     return results

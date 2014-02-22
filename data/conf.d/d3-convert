@@ -1,0 +1,16 @@
+
+src=""
+
+dst=""
+
+force=""
+
+timeout="1"
+
+uid=1001
+gid=1001
+
+pidfile=""
+
+logfile=""
+logmode="verbose"
