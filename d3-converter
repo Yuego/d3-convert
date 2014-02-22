@@ -34,7 +34,7 @@ if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Converter v' + __version__)
 
     src = arguments.pop('<src>', None)
-    if src is not None:
+    if src is not None and src and src != '/':
         src = os.path.realpath(src)
 
         dst = arguments.pop('--dst', None)
