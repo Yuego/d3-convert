@@ -22,9 +22,7 @@ if [ ! -z "${logmode}" ]; then
     command_args="${command_args} --${logmode}"
 fi
 
-command_args="${command_args} --timeout=${timeout} --uid=${uid} --gid=${gid} --logfile=${logfile}"
-
-echo $command_args
+command_args="${command_args} --timeout=${timeout} --uid=${uid} --gid=${gid} --logfile=${logfile} --pidfile=${pidfile}"
 
 start_pre() {
     checkpath -d -m 0750 -o "${uid}":"${gid}" "${pidpath}"
