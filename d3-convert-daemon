@@ -21,6 +21,7 @@ from d3_convert.log import log
 from d3_convert.utils import path_re
 from d3_convert.version import __version__
 import daemon
+from daemon.pidlockfile import PIDLockFile
 from docopt import docopt
 import io
 import os
@@ -36,6 +37,8 @@ def main(src, dst, timeout, force):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Convert Daemon v' + __version__)
+
+    print(arguments)
 
     src = arguments.pop('--src', None)
     if src is not None:
@@ -59,7 +62,7 @@ if __name__ == '__main__':
         if not pidfile:
             pidfile = os.path.join('/run/d3-convert-daemon-{0}.pid'.format(daemon_name))
 
-        pidfile = io.open(pidfile, 'w')
+        pidfile = PIDLockFile(pidfile)
 
         try:
             uid = int(arguments.pop('--uid'))
