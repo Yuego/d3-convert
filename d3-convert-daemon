@@ -3,7 +3,7 @@
 """D3 Convert Daemon
 
 Usage:
-    d3-convert-daemon <src> [--dst=<dstdir>] [--force] [--timeout=<n>]  [--uid=<id>] [--gid=<id>] [--pidfile=<path>] [--verbose|--debug] [--logfile=<path>]
+    d3-convert-daemon --src=<srcdir> [--dst=<dstdir>] [--force] [--timeout=<n>]  [--uid=<id>] [--gid=<id>] [--pidfile=<path>] [--verbose|--debug] [--logfile=<path>]
     d3-convert-daemon (-h | --help)
     d3-convert-daemon --version
 
@@ -37,7 +37,7 @@ def main(src, dst, timeout, force):
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Convert Daemon v' + __version__)
 
-    src = arguments.pop('<src>', None)
+    src = arguments.pop('--src', None)
     if src is not None:
         src = os.path.realpath(src)
         daemon_name = path_re.sub('', src).lower()
@@ -50,6 +50,9 @@ if __name__ == '__main__':
             timeout = int(arguments.pop('--timeout'))
         except (TypeError, ValueError):
             timeout = 1
+        else:
+            if timeout < 1:
+                timeout = 1
 
         force = arguments.pop('--force', False)
         pidfile = arguments.pop('--pidfile')
