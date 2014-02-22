@@ -27,7 +27,3 @@ command_args="${command_args} --timeout=${timeout} --uid=${uid} --gid=${gid} --l
 start_pre() {
     checkpath -d -m 0750 -o "${uid}":"${gid}" "${pidpath}"
 }
-
-stop_post() {
-    rm -f ${pidfile}
-}
