@@ -103,6 +103,7 @@ def blend_tif(photos, dst):
     threads = [threading.Thread(target=worker) for _i in range(cpus)]
 
     for thread in threads:
+        thread.setDaemon(True)
         thread.start()
 
     for thread in threads:
