@@ -38,8 +38,6 @@ def main(src, dst, timeout, force):
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Convert Daemon v' + __version__)
 
-    print(arguments)
-
     src = arguments.pop('--src', None)
     if src is not None:
         src = os.path.realpath(src)
