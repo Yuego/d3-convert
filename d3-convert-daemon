@@ -3,19 +3,92 @@
 """D3 Convert Daemon
 
 Usage:
+    d3-convert-daemon <src> [--dst=<dstdir>] [--force] [--timeout=<n>]  [--uid=<id>] [--gid=<id>] [--pidfile=<path>] [--verbose|--debug] [--logfile=<path>]
     d3-convert-daemon (-h | --help)
     d3-convert-daemon --version
 
 Options:
-    -h --help       Show this screen.
-    --version       Show version
+    --dst=<dstdir>      Set destination dir.
+    --force             Force reconvert existing files
+    -h --help           Show this screen.
+    --version           Show version
 
 """
 
 from __future__ import unicode_literals, absolute_import
+from d3_convert.convert import convert_all
+from d3_convert.log import log
+from d3_convert.utils import path_re
 from d3_convert.version import __version__
+import daemon
 from docopt import docopt
+import io
+import os
+import time
+
+
+def main(src, dst, timeout, force):
+    timeout = 60 * timeout
+    while True:
+        convert_all(src, dst, force, nowb=True)
+
+        time.sleep(timeout)
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Convert Daemon v' + __version__)
 
+    src = arguments.pop('<src>', None)
+    if src is not None:
+        src = os.path.realpath(src)
+        daemon_name = path_re.sub('', src).lower()
+
+        dst = arguments.pop('--dst', None)
+        if dst is None:
+            dst = src
+
+        try:
+            timeout = int(arguments.pop('--timeout'))
+        except (TypeError, ValueError):
+            timeout = 1
+
+        force = arguments.pop('--force', False)
+        pidfile = arguments.pop('--pidfile')
+        if not pidfile:
+            pidfile = os.path.join('/run/d3-convert-daemon-{0}.pid'.format(daemon_name))
+
+        pidfile = io.open(pidfile, 'w')
+
+        try:
+            uid = int(arguments.pop('--uid'))
+        except (TypeError, ValueError):
+            uid = None
+
+        try:
+            gid = int(arguments.pop('--gid'))
+        except (TypeError, ValueError):
+            gid = None
+
+        verbose = arguments.pop('--verbose', False)
+        debug = arguments.pop('--debug', False)
+        if verbose:
+            log.level = log.INFO
+        elif debug:
+            log.level = log.DEBUG
+
+        logfile = arguments.pop('--logfile')
+        if logfile is None:
+            logfile = '/var/log/d3/daemon-{0}.log'.format(daemon_name)
+        logfile = io.open(logfile, 'w')
+
+
+        context = daemon.DaemonContext(umask=0o002,
+                                       uid=uid,
+                                       gid=gid,
+                                       pidfile=pidfile,
+                                       working_directory=src,
+                                       #chroot_directory=src,
+                                       stdout=logfile,
+                                       stderr=logfile,
+                                       )
+        with context:
+            main(src, dst, timeout, force)
