@@ -82,7 +82,7 @@ if __name__ == '__main__':
         logfile = arguments.pop('--logfile')
         if logfile is None:
             logfile = '/var/log/d3/daemon-{0}.log'.format(daemon_name)
-        logfile = io.open(logfile, 'w')
+        logfile = io.open(logfile, 'a')
 
 
         context = daemon.DaemonContext(umask=0o002,
