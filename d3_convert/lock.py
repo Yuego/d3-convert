@@ -12,10 +12,12 @@ def get_pids_by_name(name):
 
 
 def dir_locked_by_process(dir, process):
-    for f in process.get_open_files():
-        if f.path.startswith(dir):
-            return True
-
+    try:
+        for f in process.get_open_files():
+            if f.path.startswith(dir):
+                return True
+    except psutil.AccessDenied:
+        pass
     return False
 
 
