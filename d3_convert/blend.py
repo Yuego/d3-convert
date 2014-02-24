@@ -82,8 +82,8 @@ def blend_tif(photos, dst):
             dst_filename = ''.join(dst_)
             dst_path = os.path.join(dst, dst_filename)
 
-            # Если уже сведено, выходим
-            if os.path.exists(dst_path):
+            # Если уже сведено и размер файла больше 1МБ, выходим
+            if os.path.exists(dst_path) and os.stat(dst_path).st_size > 1024*1024*1:
                 return
 
             cmd = base_cmd[:]
