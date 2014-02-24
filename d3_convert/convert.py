@@ -204,7 +204,7 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
         try:
             cr2_files = collect_cr2(files=files, srcpath=srcpath, dstpath=dstpath)
         except IncompleteDirError:
-            log.warning('Не все файлы в каталоге `{0}` целостны. Пропускаем.')
+            log.warning('Не все файлы в каталоге `{0}` целостны. Пропускаем.'.format(srcpath))
             continue
 
         if cr2_files:
