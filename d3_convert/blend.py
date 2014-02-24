@@ -15,6 +15,12 @@ try:
 except ImportError:
     from Queue import Queue, Empty
 
+_exif_clear = [
+    'Exif.Image.Compression',
+    'Exif.Image.Orientation',
+    'Exif.Image2.Compression',
+    'Exif.Image3.Compression',
+]
 
 def check_bracketing(photos):
     result = []
@@ -98,6 +104,17 @@ def blend_tif(photos, dst):
                 dst_path,
             )
             log.debug(message)
+
+            e = br[0].exif
+            for key in _exif_clear:
+                try:
+                    del e[key]
+                except KeyError:
+                    pass
+
+            e.save_file(dst_path)
+            log.debug('Метаданные файла `{0}` обновлены'.format(dst_path))
+
             log.progress()
 
     threads = [threading.Thread(target=worker) for _i in range(cpus)]
