@@ -164,7 +164,7 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
             elif (int(time()) - dir_mtime) > 60 * 60 * 24 * 14:
                 log.debug('Пропуск "старого" каталога: `{0}`'.format(srcpath))
                 continue
-            elif is_locked(srcpath, 'torrent'):
+            elif is_locked(src, srcpath, 'torrent'):
                 log.warning('Пропуск занятого торрентом каталога: `{0}`'.format(srcpath))
                 log.warning('Дождитесь завершения загрузки, либо удалите торрент из торрент-клиента.')
                 continue
@@ -179,7 +179,7 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
                 cr2_files.append(photo)
 
         if cr2_files:
-            if is_locked(srcpath, 'ufraw-batch') or is_locked(srcpath, 'enfuse'):
+            if is_locked(src, srcpath, 'ufraw-batch') or is_locked(src, srcpath, 'enfuse'):
                 log.status = 'Каталог `{0}` уже обрабатывается другой копией конвертера. Пропускаем'.format(srcpath)
                 continue
 
