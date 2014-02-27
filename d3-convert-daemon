@@ -26,12 +26,17 @@ from docopt import docopt
 import io
 import os
 import time
+import traceback
 
 
 def main(src, dst, timeout, force):
     timeout = 60 * timeout
     while True:
-        convert_all(src, dst, force, nowb=True)
+        try:
+            convert_all(src, dst, force, nowb=True)
+        except Exception as e:
+            log.error(e.message)
+            traceback.print_exc(limit=10)
 
         time.sleep(timeout)
 
