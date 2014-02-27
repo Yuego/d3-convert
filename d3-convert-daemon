@@ -32,6 +32,7 @@ import traceback
 def main(src, dst, timeout, force):
     timeout = 60 * timeout
     while True:
+        #TODO: корректно перехватывать исключения
         try:
             convert_all(src, dst, force, nowb=True)
         except Exception as e:
