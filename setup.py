@@ -20,7 +20,7 @@ setup(
         #'gi',  # media-libs/gexiv2
         'lxml',
         #'scandir',
-        'psutil',
+        'psutil<2',
     ],
     packages=find_packages(exclude=['tests', 'tests.*']),
     include_package_data=True,
@@ -30,8 +30,6 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: Russian',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
         'Topic :: Software Development :: Libraries :: Python Modules',

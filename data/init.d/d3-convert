@@ -6,7 +6,7 @@
 command="/usr/bin/d3-convert-daemon"
 command_args="--src=${src}"
 
-pidpath="/run"
+pidpath="/run/d3-convert"
 pidfile="${pidpath}/${pidfile:-d3-convert-daemon.pid}"
 uid=${uid:-0}
 gid=${gid:-0}
