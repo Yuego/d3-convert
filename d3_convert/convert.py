@@ -210,6 +210,7 @@ def convert_all(src, dst, force, autowb=False, nowb=False):
             log.status = 'Обработка каталога: `{0}`'.format(srcpath)
 
             convert_cr2(photos=cr2_files, dst=dstpath, force=force, autowb=autowb, nowb=nowb)
-            blend_tif(photos=cr2_files, tif_dir=dstpath, force=force)
+            blend_dir = os.path.join(dstpath, 'blend')
+            blend_tif(photos=cr2_files, dst=blend_dir)
         else:
             log.debug('Пропуск "пустого" каталога `{0}`'.format(srcpath))

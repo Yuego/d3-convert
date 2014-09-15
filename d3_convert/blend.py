@@ -21,6 +21,8 @@ _exif_clear = [
     'Exif.Image3.Compression',
 ]
 
+_min_size = 1024*1024*1  # 1 MB
+
 
 def check_bracketing(photos):
     result = []
@@ -48,14 +50,12 @@ def check_bracketing(photos):
     return result
 
 
-def blend_tif(photos, tif_dir, force=False):
-    dst = os.path.join(tif_dir, 'blend')
+def blend_tif(photos, dst):
     blend_file = os.path.join(dst, '.blend')
-    if force:
-        shutil.rmtree(dst, ignore_errors=True)
 
     makedirs(dst, mode=0o775)
     if os.path.exists(blend_file):
+        log.debug('Файлы уже сведены. Выходим...')
         return
 
     base_cmd = [
@@ -63,8 +63,6 @@ def blend_tif(photos, tif_dir, force=False):
         '--compression=deflate',
         '-o',
     ]
-
-    log.status = 'Сведение файлов в директории `{0}`'.format(tif_dir)
 
     bracketed = check_bracketing(photos)
 
@@ -92,7 +90,8 @@ def blend_tif(photos, tif_dir, force=False):
             dst_path = os.path.join(dst, dst_filename)
 
             # Если уже сведено и размер файла больше 1МБ, выходим
-            if os.path.exists(dst_path) and os.stat(dst_path).st_size > 1024*1024*1:
+            if os.path.exists(dst_path) and os.stat(dst_path).st_size > _min_size:
+                log.debug('Файл `{0}` уже существует. Выходим...'.format(dst_path))
                 return
 
             cmd = base_cmd[:]
@@ -147,7 +146,7 @@ def blend_tif(photos, tif_dir, force=False):
     return results
 
 
-def blend_dir(src, dst, force):
+def blend_dir(src, dst=None, force=False):
     tiff_files = []
     for entry in scandir.scandir(src):
         if entry.is_dir():
@@ -162,4 +161,5 @@ def blend_dir(src, dst, force):
 
         makedirs(dst, mode=0o775)
         if not os.path.exists(os.path.join(dst, '.blend')):
+            log.status = 'Сведение файлов в директории `{0}`'.format(src)
             blend_tif(tiff_files, dst)
