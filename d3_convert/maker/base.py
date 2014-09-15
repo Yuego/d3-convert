@@ -13,7 +13,7 @@ class MakerBase(object):
     def __calculate_exposure(self, value):
         if '/' in value:
             up, dn = value.split('/')
-            return 1.0/int(dn)
+            return float(up)/float(dn)
         else:
             return float(value)
 
