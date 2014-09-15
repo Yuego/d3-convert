@@ -1,5 +1,4 @@
 #coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 from d3_convert.log import log
 from d3_convert.photo import TifPhoto
@@ -151,7 +150,7 @@ def blend_tif(photos, tif_dir, force=False):
 def blend_dir(src, dst, force):
     tiff_files = []
     for entry in scandir.scandir(src):
-        if entry.isdir():
+        if entry.is_dir():
             continue
         filename, _n, ext = entry.name.lower().rpartition('.')
         if ext == 'tif':
