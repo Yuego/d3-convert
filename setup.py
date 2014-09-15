@@ -19,8 +19,8 @@ setup(
         'docopt',
         #'gi',  # media-libs/gexiv2
         'lxml',
-        #'scandir',
-        'psutil<2',
+        'scandir',
+        'psutil',
     ],
     packages=find_packages(exclude=['tests', 'tests.*']),
     include_package_data=True,
@@ -32,6 +32,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
 )

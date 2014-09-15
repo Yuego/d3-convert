@@ -1,24 +1,30 @@
 #coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 import os
 import psutil
+
+psutil_ver = int(psutil.__version__.split('.')[0])
+
+if psutil_ver < 2:
+    get_open_files = lambda x: x.get_open_files()
+else:
+    get_open_files = lambda x: x.open_files()
+
+
+def dir_locked_by_process(dir, process):
+    try:
+        for f in get_open_files(process):
+            if f.path.startswith(dir):
+                return True
+    except psutil.AccessDenied:
+        pass
+    return False
 
 
 def get_pids_by_name(name):
     for p in psutil.process_iter():
         if name in p.name:
             yield p
-
-
-def dir_locked_by_process(dir, process):
-    try:
-        for f in process.get_open_files():
-            if f.path.startswith(dir):
-                return True
-    except psutil.AccessDenied:
-        pass
-    return False
 
 
 def is_locked(root_dir, src_dir, process_name):

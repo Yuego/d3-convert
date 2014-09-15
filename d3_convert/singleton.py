@@ -4,7 +4,6 @@
 tendo singleton class
 https://github.com/pycontribs/tendo/blob/master/tendo/singleton.py
 """
-from __future__ import unicode_literals, absolute_import
 
 import sys
 import os
@@ -12,7 +11,7 @@ import tempfile
 import logging
 
 
-class SingleInstance:
+class SingleInstance(object):
 
     """
     If you want to prevent your script from running in parallel just instantiate SingleInstance() class. If is there another instance already running it will exist the application with the message "Another instance is already running, quitting.", returning -1 error code.

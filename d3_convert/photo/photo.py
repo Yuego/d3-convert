@@ -1,5 +1,4 @@
 #coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 from d3_convert.exif import exif
 from importlib import import_module
@@ -7,6 +6,7 @@ import os
 import re
 
 seq_re = re.compile(r'(\d{4,})')
+
 
 class Photo(object):
     exif_class = exif
@@ -108,6 +108,10 @@ class Photo(object):
     @property
     def bracket_count(self):
         return self.data.bracket_count()
+
+    @property
+    def exposure(self):
+        return self.data.exposure()
 
     def __unicode__(self):
         if self.raw:
