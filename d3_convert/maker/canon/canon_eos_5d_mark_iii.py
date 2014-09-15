@@ -1,8 +1,8 @@
 #coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 from d3_convert.maker.canon import Maker as MakerBase
 from d3_convert.process import Process
+
 
 class Maker(MakerBase):
 

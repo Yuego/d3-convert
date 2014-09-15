@@ -1,5 +1,4 @@
 #coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 from d3_convert.blend import blend_tif
 from d3_convert.lock import is_locked

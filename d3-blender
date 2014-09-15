@@ -17,7 +17,6 @@ Options:
     --lockname=<name>   Lockfile name
 
 """
-from __future__ import unicode_literals, absolute_import
 
 from d3_convert.blend import blend_dir
 from d3_convert.log import log

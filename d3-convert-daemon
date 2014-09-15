@@ -15,7 +15,6 @@ Options:
 
 """
 
-from __future__ import unicode_literals, absolute_import
 from d3_convert.convert import convert_all
 from d3_convert.log import log
 from d3_convert.utils import path_re

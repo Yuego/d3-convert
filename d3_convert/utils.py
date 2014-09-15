@@ -1,12 +1,10 @@
 #coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 import multiprocessing
 import os
 import re
 
 cpus = multiprocessing.cpu_count()
-
 path_re = re.compile(r'[^a-z0-9]*', re.I)
 
 
