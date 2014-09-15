@@ -10,6 +10,16 @@ class MakerBase(object):
     def is_bracketed(self):
         raise NotImplementedError()
 
+    def __calculate_exposure(self, value):
+        if '/' in value:
+            up, dn = value.split('/')
+            return 1.0/int(dn)
+        else:
+            return float(value)
+
+    def exposure(self):
+        return self.__calculate_exposure(self.exif['Exif.Photo.ExposureTime'])
+
     def bracket_value(self):
         raise NotImplementedError()
 

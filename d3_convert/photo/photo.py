@@ -109,6 +109,10 @@ class Photo(object):
     def bracket_count(self):
         return self.data.bracket_count()
 
+    @property
+    def exposure(self):
+        return self.data.exposure()
+
     def __unicode__(self):
         if self.raw:
             return self.raw

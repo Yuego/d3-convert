@@ -34,16 +34,21 @@ def check_bracketing(photos):
     while len(bracketed_photos) > 2:
         p1, p2, p3 = bracketed_photos[0:3]
 
-        # Верная последовательность
-        if (p1.seq_number + 1 == p2.seq_number and p2.seq_number + 1 == p3.seq_number):
-            # Средний - Тёмный - Светлый или Тёмный - Средний - Светлый
-            if (p1.bracket_value - p2.bracket_value == p3.bracket_value - p1.bracket_value or
-                    p2.bracket_value - p1.bracket_value == p3.bracket_value - p2.bracket_value):
+        #TODO: проверка геометрии (автоповорот) и по возможности поворот изображений
+        # Верный порядок
+        if (
+            p1.seq_number + 1 == p2.seq_number
+            and p2.seq_number + 1 == p3.seq_number  # И правильная последовательность экспозиций
+            and ((p2.exposure < p1.exposure < p3.exposure)  # Средний - Тёмный - Светлый
+                 or (p1.exposure < p2.exposure < p3.exposure))  # Тёмный - Средний - Светлый
+            # и ещё одна проверка правильной последовательности брекетинга
+            and(p1.bracket_value - p2.bracket_value == p3.bracket_value - p1.bracket_value
+                or p2.bracket_value - p1.bracket_value == p3.bracket_value - p2.bracket_value)
+        ):
+            result.append([p1, p2, p3])
 
-                result.append([p1, p2, p3])
-
-                bracketed_photos = bracketed_photos[3:]
-                continue
+            bracketed_photos = bracketed_photos[3:]
+            continue
 
         bracketed_photos = bracketed_photos[1:]
 
