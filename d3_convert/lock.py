@@ -7,13 +7,13 @@ import psutil
 
 def get_pids_by_name(name):
     for p in psutil.process_iter():
-        if name in p.name:
+        if name in p.name():
             yield p
 
 
 def dir_locked_by_process(dir, process):
     try:
-        for f in process.get_open_files():
+        for f, fid in process.open_files():
             if f.path.startswith(dir):
                 return True
     except psutil.AccessDenied:

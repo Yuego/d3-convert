@@ -36,7 +36,7 @@ def main(src, dst, timeout, force):
         try:
             convert_all(src, dst, force, nowb=True)
         except Exception as e:
-            log.error(e.message)
+            log.error(e)
             traceback.print_exc(limit=10)
 
         time.sleep(timeout)
