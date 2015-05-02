@@ -15,6 +15,13 @@ try:
 except ImportError:
     from Queue import Queue, Empty
 
+_exif_clear = [
+    'Exif.Image.Compression',
+    'Exif.Image.Orientation',
+    'Exif.Image2.Compression',
+    'Exif.Image3.Compression',
+]
+
 
 def check_bracketing(photos):
     result = []
@@ -42,14 +49,23 @@ def check_bracketing(photos):
     return result
 
 
-def blend_tif(photos, dst):
+def blend_tif(photos, tif_dir, force=False):
+    dst = os.path.join(tif_dir, 'blend')
+    blend_file = os.path.join(dst, '.blend')
+    if force:
+        shutil.rmtree(dst, ignore_errors=True)
+
+    makedirs(dst, mode=0o775)
+    if os.path.exists(blend_file):
+        return
+
     base_cmd = [
         'enfuse',
         '--compression=deflate',
         '-o',
     ]
 
-    log.status = 'Сведение файлов в директории `{0}`'.format(photos[0].tif_dir)
+    log.status = 'Сведение файлов в директории `{0}`'.format(tif_dir)
 
     bracketed = check_bracketing(photos)
 
@@ -76,8 +92,8 @@ def blend_tif(photos, dst):
             dst_filename = ''.join(dst_)
             dst_path = os.path.join(dst, dst_filename)
 
-            # Если уже сведено, выходим
-            if os.path.exists(dst_path):
+            # Если уже сведено и размер файла больше 1МБ, выходим
+            if os.path.exists(dst_path) and os.stat(dst_path).st_size > 1024*1024*1:
                 return
 
             cmd = base_cmd[:]
@@ -98,6 +114,17 @@ def blend_tif(photos, dst):
                 dst_path,
             )
             log.debug(message)
+
+            e = br[0].exif
+            for key in _exif_clear:
+                try:
+                    del e[key]
+                except KeyError:
+                    pass
+
+            e.save_file(dst_path)
+            log.debug('Метаданные файла `{0}` обновлены'.format(dst_path))
+
             log.progress()
 
     threads = [threading.Thread(target=worker) for _i in range(cpus)]

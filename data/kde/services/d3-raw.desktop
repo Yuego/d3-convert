@@ -1,11 +1,17 @@
 [Desktop Entry]
+Version=1.0
 Type=Service
+
 ServiceTypes=KonqPopupMenu/Plugin
-MimeType=inode/directory;x-directory/normal;
+
+MimeType=inode/directory;
+
 Actions=convert-dir-wb;convert-dir-nowb;convert-dir;blend;
 X-KDE-Priority=TopLevel
-X-KDE-Submenu=RAW_NEW
+X-KDE-Submenu=RAW
+
 Icon=luna
+
 Encoding=UTF-8
 Name=Работа с исходниками
 
