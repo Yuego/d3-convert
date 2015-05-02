@@ -9,7 +9,6 @@ setup(
     author='Artem Vlasov',
     author_email='root@proscript.ru',
     url='',
-    #download_url='https://github.com/Yuego/krpano/archive/%s.tar.gz' % __version__,
 
     description='D3 Converter',
     long_description=open('README.rst').read(),
@@ -17,7 +16,8 @@ setup(
     license='MIT',
     install_requires=[
         'docopt',
-        #'gi',  # media-libs/gexiv2
+        'PyGObject',
+        # media-libs/gexiv2
         'lxml',
         #'scandir',
         'psutil',
@@ -25,15 +25,14 @@ setup(
     packages=find_packages(exclude=['tests', 'tests.*']),
     include_package_data=True,
     classifiers=[
-        'Development Status :: 1 - Alpha',
+        'Development Status :: 2 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: Russian',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
 )
