@@ -16,11 +16,11 @@ setup(
     license='MIT',
     install_requires=[
         'docopt',
-        'PyGObject',
+        #'PyGObject',
         # media-libs/gexiv2
         'lxml',
         #'scandir',
-        'psutil<2',
+        'psutil>=2',
     ],
     packages=find_packages(exclude=['tests', 'tests.*']),
     include_package_data=True,

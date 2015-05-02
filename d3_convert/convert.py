@@ -120,9 +120,12 @@ def convert_cr2(photos, dst, force=False, autowb=False, nowb=False):
             p = Process(cmd, cwd=dst)
             p.run()
 
+
             result = ' '.join([p.result, p.errors]).lower()
             if 'saved' in result:
                 log.debug('`{0}` сконвертирован в `{1}`'.format(photo.raw, photo.tif))
+            elif 'error' in result:
+                log.error('`{0}` не сконвертирован из-за ошибки:\n\r {1}'.format(photo.raw, result))
             log.progress()
 
     threads = [threading.Thread(target=worker) for _i in range(cpus)]
