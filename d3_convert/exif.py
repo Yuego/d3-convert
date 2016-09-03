@@ -3,6 +3,9 @@ from __future__ import unicode_literals, absolute_import
 
 
 try:
+    import gi
+    gi.require_version('GExiv2', '0.10')
+
     from gi.repository import GExiv2
     exif = GExiv2.Metadata
 except ImportError:
