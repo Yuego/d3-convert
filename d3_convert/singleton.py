@@ -11,11 +11,16 @@ import os
 import tempfile
 import logging
 
+if sys.platform != 'win32':
+    import fcntl
+
 
 class SingleInstance:
 
     """
-    If you want to prevent your script from running in parallel just instantiate SingleInstance() class. If is there another instance already running it will exist the application with the message "Another instance is already running, quitting.", returning -1 error code.
+    If you want to prevent your script from running in parallel just instantiate SingleInstance() class.
+    If is there another instance already running it will exist the application with the message
+    "Another instance is already running, quitting.", returning -1 error code.
 
     >>> import tendo
     ... me = SingleInstance()
@@ -45,7 +50,6 @@ class SingleInstance:
                 print(e.errno)
                 raise
         else:  # non Windows
-            import fcntl
             self.fp = open(self.lockfile, 'w')
             try:
                 fcntl.lockf(self.fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -63,7 +67,6 @@ class SingleInstance:
                     os.close(self.fd)
                     os.unlink(self.lockfile)
             else:
-                import fcntl
                 fcntl.lockf(self.fp, fcntl.LOCK_UN)
                 if os.path.isfile(self.lockfile):
                     os.unlink(self.lockfile)
