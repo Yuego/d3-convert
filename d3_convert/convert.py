@@ -8,6 +8,7 @@ from d3_convert.photo import CR2Photo
 from d3_convert.process import Process
 from d3_convert.utils import cpus, makedirs
 
+
 import glob
 import io
 from lxml import etree
@@ -150,11 +151,14 @@ def convert_cr2(photos, dst, force=False, autowb=False, nowb=False):
 
 
 def collect_cr2(files, srcpath, dstpath):
+
+
     cr2_files = []
     for file in files:
         filename, nothing, ext = file.lower().rpartition('.')
         if ext == 'cr2':
             srcfile = os.path.join(srcpath, file)
+
             photo = CR2Photo(srcfile)
             # Проверяем, читается ли exif файла
             try:
