@@ -14,6 +14,7 @@ class Photo(object):
 
     def __init__(self, filename, exiftool_instance):
         self._filename = filename
+        self._name = None
 
         self._metadata = exiftool_instance.get_metadata(self._filename)
 
@@ -38,6 +39,17 @@ class Photo(object):
     @property
     def filename(self):
         return self._filename
+
+    @property
+    def name(self):
+        if self._name is None:
+            filename = os.path.basename(self.filename)
+
+            name, _, ext = filename.rpartition('.')
+            if not name:
+                name = ext
+            self._name = name
+        return self._name
 
     @property
     def dirname(self):
