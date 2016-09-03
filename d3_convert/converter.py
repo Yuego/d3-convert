@@ -5,6 +5,7 @@ from exiftool import ExifTool
 import glob
 from lxml import etree
 import os
+import scandir
 
 try:
     from queue import Queue, Empty
@@ -17,6 +18,7 @@ import threading
 
 from .commands import convert_to_cmd, get_wb_cmd
 from .exceptions import *
+from .lock import is_locked
 from .log import log
 from .photo2 import Photo
 from .process import Process
@@ -47,14 +49,17 @@ class WhiteBalance(object):
 
     def __init__(self):
         self.mode = 'camera'
-        self.source = None
+        self.filename = None
 
     def gen_camera_wb(self, **kwargs):
         return ['--wb=camera']
 
-    def gen_manual_wb(self, source=None, **kwargs):
+    def gen_manual_wb(self, photo=None, source=None, **kwargs):
         temp = None
         green = None
+
+        if photo is not None:
+            source = photo.dirname
 
         if os.path.isfile(source):
             config_files = [source]
@@ -88,32 +93,32 @@ class WhiteBalance(object):
         proc.wait()
 
         config_path = os.path.join(photo.dirname, 'wb.ufraw')
-        result = self.gen_manual_wb(photo=photo, source=config_path)
+        result = self.gen_manual_wb(source=config_path)
 
         os.unlink(config_path)
 
         return result
 
-    def setup(self, mode, source=None):
+    def setup(self, mode, filename=None):
         assert mode in ['auto', 'camera', 'manual'], 'Unknown WhiteBalance mode: {0}'.format(mode)
 
         self.mode = mode
-        self.source = source
+        self.filename = filename
 
     def generate_for(self, photo):
-        return getattr(self, 'gen_{0}_wb'.format(self.mode))(photo=photo, source=self.source)
+        return getattr(self, 'gen_{0}_wb'.format(self.mode))(photo=photo, source=self.filename)
 
 
 class DirectoryRAWConverter(object):
     photos = None
 
-    def __init__(self, raw_format, dst_dirname='tiff', dst_format='tif'):
-        assert raw_format in ['cr2'], 'Unknown RAW format: {0}'.format(raw_format)
-        assert dst_format in ['tif'], 'Unknown target images format: {0}'.format(dst_format)
+    def __init__(self, raw_format=None, dst_dirname=None, dst_format=None):
+        assert raw_format is None or raw_format in ['cr2'], 'Unknown RAW format: {0}'.format(raw_format)
+        assert dst_format is None or dst_format in ['tif'], 'Unknown target images format: {0}'.format(dst_format)
 
-        self.dst_dirname = dst_dirname
-        self.src_format = raw_format
-        self.dst_format = dst_format
+        self.dst_dirname = dst_dirname or 'tiff'
+        self.src_format = raw_format or 'cr2'
+        self.dst_format = dst_format or 'tif'
         self.wb = WhiteBalance()
 
     def set_wb_mode(self, mode, source=None):
@@ -184,3 +189,20 @@ class DirectoryRAWConverter(object):
 
             for thread in threads:
                 thread.join()
+
+
+class WalkRAWConverter(object):
+
+    def __init__(self, dst_dirname=None, wb_mode=None, wb_source=None):
+        self.dir_converter = DirectoryRAWConverter(dst_dirname=dst_dirname)
+        self.dir_converter.set_wb_mode(wb_mode)
+
+
+    def convert(self, src_dir, force=False):
+        for (srcpath, dirs, files) in scandir.walk(src_dir):
+
+            if is_locked(src_dir, srcpath, 'ufraw-batch') or is_locked(src_dir, srcpath, 'enfuse'):
+                log.status = 'Каталог `{0}` уже обрабатывается другой копией конвертера. Пропускаем'.format(srcpath)
+                continue
+
+            self.dir_converter.convert(path=srcpath, filenames=files, force=force)
