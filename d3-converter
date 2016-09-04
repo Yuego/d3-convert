@@ -3,7 +3,7 @@
 """D3 Converter
 
 Usage:
-    convert <src> [--dst=<dstdir>] [--force] [--wb=auto|camera|<src>] [--verbose|--debug] [--lockname=<name>]
+    convert <src> [--dst=<dstdir>] [--force] [--wb=auto|camera|manual|<src>] [--verbose|--debug] [--lockname=<name>]
     convert (-h | --help)
     convert --version
 
@@ -20,7 +20,7 @@ Options:
 """
 from __future__ import unicode_literals, absolute_import
 
-from d3_convert.converter import WalkRAWConverter
+from d3_convert.converter import DirectoryRAWConverter
 from d3_convert.log import log
 from d3_convert.singleton import SingleInstance
 from d3_convert.utils import path_re
@@ -40,9 +40,10 @@ if __name__ == '__main__':
 
         wb_mode = arguments.pop('--wb', 'camera')
         wb_source = None
-        if wb_mode not in ['camera', 'auto']:
+        # TODO: довести до ума WB из конкретного файла
+        if False and wb_mode not in ['camera', 'auto']:
             if not os.path.isfile(wb_mode):
-                raise Exception('Unknown WhiteBalance soure: {0}'.format(wb))
+                raise Exception('Unknown WhiteBalance soure: {0}'.format(wb_mode))
             else:
                 wb_source = wb_mode
                 wb = 'manual'
@@ -62,6 +63,7 @@ if __name__ == '__main__':
 
         instance = SingleInstance(flavor_id=lockname)
 
-        converter = WalkRAWConverter(dst_dirname=dst, wb_mode=wb_mode, wb_source=wb_source)
+        converter = DirectoryRAWConverter(dst_dirname=dst, wb_mode=wb_mode, wb_source=wb_source)
 
-        converter.convert(src_dir=src, force=force)
+        for tiffs in converter.convert(src=src, force=force):
+            pass

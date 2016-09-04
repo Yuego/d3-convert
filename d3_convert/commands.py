@@ -1,6 +1,34 @@
 #coding: utf-8
 from __future__ import unicode_literals, absolute_import
 
+import os
+
+
+def copy_exif_to_cmd(src_photo, dst_photo):
+    pass
+
+
+def get_blend_filename(dstpath, batch):
+    fn = list()
+    for photo in batch:
+        fn.append(str(photo.seq_number))
+
+    return os.path.join(dstpath, 'IMG_{0}.tif'.format('_'.join(fn)))
+
+
+def blend_to_cmd(dst_filename, batch):
+
+    cmd = [
+        'enfuse',
+        '--compression=deflate',
+        '-o',
+        dst_filename,
+    ]
+
+    cmd.extend([p.filename for p in batch])
+
+    return cmd
+
 
 def convert_to_cmd(dstdir, img_format, filename, wb=None):
     cmd = [

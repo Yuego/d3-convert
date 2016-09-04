@@ -2,129 +2,100 @@
 from __future__ import unicode_literals, absolute_import
 
 from exiftool import ExifTool
-import glob
-from lxml import etree
 import os
 import scandir
-
-try:
-    from queue import Queue, Empty
-except ImportError:
-    from Queue import Queue, Empty
 
 import shutil
 import threading
 
-
-from .commands import convert_to_cmd, get_wb_cmd
+from .compat import Queue
 from .exceptions import *
 from .lock import is_locked
 from .log import log
 from .photo2 import Photo
-from .process import Process
 from .utils import cpus, makedirs
+from .whitebalance import WhiteBalance
+from .workers import convert_worker
 
 
-def convert_worker(queue, dstdir, img_format, wb=None):
-    while True:
-        try:
-            photo = queue.get(False)
-        except Empty:
-            return
-
-        log.debug('Обработка файла: {0}'.format(photo.filename))
-        cmd = convert_to_cmd(dstdir=dstdir, img_format=img_format, filename=photo.filename, wb=wb)
-        p = Process(cmd, cwd=dstdir)
-        p.run()
-
-        result = ' '.join([p.result, p.errors]).lower()
-        if 'saved' in result:
-            log.debug('`{0}` сконвертирован в каталог: {1}'.format(photo.filename, dstdir))
-        elif 'error' in result:
-            log.error('`{0}` не сконвертирован из-за ошибки:\n\r {1}'.format(photo.filename, result))
-        log.progress()
-
-
-class WhiteBalance(object):
-
-    def __init__(self):
-        self.mode = 'camera'
-        self.filename = None
-
-    def gen_camera_wb(self, **kwargs):
-        return ['--wb=camera']
-
-    def gen_manual_wb(self, photo=None, source=None, **kwargs):
-        temp = None
-        green = None
-
-        if photo is not None:
-            source = photo.dirname
-
-        if os.path.isfile(source):
-            config_files = [source]
-        elif os.path.isdir(source):
-            config_files = glob.glob(os.path.join(source, '*.ufraw'))
-        else:
-            raise ValueError('Unknown UFRAW config source: {0}'.format(source))
-
-        for config_path in config_files:
-            doc = etree.parse(config_path)
-            temp = doc.find('Temperature')
-            green = doc.find('Green')
-
-            if temp is not None and green is not None:
-                break
-
-        if not temp or not green:
-            raise ValueError('WhiteBalance settings file not found in `{0}`'.format(source))
-
-        return [
-            '--temperature={0}'.format(temp.text),
-            '--green={0}'.format(green.text)
-        ]
-
-    def gen_auto_wb(self, photo, **kwargs):
-        output = os.path.join(photo.dirname, 'wb')
-        cmd = get_wb_cmd(src_file=photo.filename, dst_file=output)
-
-        proc = Process(cmd, cwd=photo.dirname)
-        proc.run()
-        proc.wait()
-
-        config_path = os.path.join(photo.dirname, 'wb.ufraw')
-        result = self.gen_manual_wb(source=config_path)
-
-        os.unlink(config_path)
-
-        return result
-
-    def setup(self, mode, filename=None):
-        assert mode in ['auto', 'camera', 'manual'], 'Unknown WhiteBalance mode: {0}'.format(mode)
-
-        self.mode = mode
-        self.filename = filename
-
-    def generate_for(self, photo):
-        return getattr(self, 'gen_{0}_wb'.format(self.mode))(photo=photo, source=self.filename)
-
-
-class DirectoryRAWConverter(object):
+class BatchRAWConverter(object):
     photos = None
 
-    def __init__(self, raw_format=None, dst_dirname=None, dst_format=None):
+    def __init__(self, raw_format=None, dst_format=None):
         assert raw_format is None or raw_format in ['cr2'], 'Unknown RAW format: {0}'.format(raw_format)
         assert dst_format is None or dst_format in ['tif'], 'Unknown target images format: {0}'.format(dst_format)
 
-        self.dst_dirname = dst_dirname or 'tiff'
-        self.src_format = raw_format or 'cr2'
         self.dst_format = dst_format or 'tif'
         self.wb = WhiteBalance()
 
     def set_wb_mode(self, mode, source=None):
-        self.wb.setup(mode=mode, source=source)
+        self.wb.setup(mode=mode)
 
-    def collect_raw(self, path, filenames):
+    def gen_wb(self, photos):
+        bracket_count = photos[0].bracket_count
+        total_photos = len(photos)
+        photo_number = (bracket_count // 2) + 1 if total_photos >= bracket_count else 0
+        return self.wb.generate_for(photos[photo_number])
+
+    def skip_already_converted(self, dstdir, photos):
+        for photo in photos:
+            dst_filename = os.path.join(dstdir, '{0}.{1}'.format(photo.name, self.dst_format))
+            if not os.path.exists(dst_filename):
+                yield photo
+
+    def convert(self, raw_photos, dstpath, force=False):
+        tiffs = []
+        errors = []
+
+        if force:
+            shutil.rmtree(dstpath, ignore_errors=True)
+
+        if raw_photos:
+            makedirs(dstpath, mode=0o775)
+
+            queue = Queue()
+            for photo in self.skip_already_converted(dstdir=dstpath, photos=raw_photos):
+                queue.put(photo)
+
+            if not queue.empty():
+                threads = [threading.Thread(
+                    target=convert_worker,
+                    kwargs=dict(
+                        queue=queue,
+                        dstdir=dstpath,
+                        img_format=self.dst_format,
+                        wb=self.gen_wb(raw_photos),
+                        tiffs=tiffs,
+                        errors=errors,
+                    ),
+                ) for _ in range(cpus)]
+
+                for thread in threads:
+                    thread.setDaemon(True)
+                    thread.start()
+
+                for thread in threads:
+                    thread.join()
+
+        return tiffs
+
+
+class DirectoryRAWConverter(object):
+
+    def __init__(self, src_format=None, dst_dirname=None, wb_mode=None, wb_source=None, protect_dirs=None):
+        self.src_format = src_format or 'cr2'
+        self.dst_dirname = dst_dirname or 'tiff'
+
+        self.converter = BatchRAWConverter()
+        self.converter.set_wb_mode(wb_mode)
+
+        self.protected_dirs = [
+            self.dst_dirname,
+        ]
+        if protect_dirs and isinstance(protect_dirs, (list, tuple)):
+            self.protected_dirs.extend(protect_dirs)
+
+    def collect_photos(self, path, filenames):
         cr2_files = []
 
         with ExifTool() as et:
@@ -134,7 +105,7 @@ class DirectoryRAWConverter(object):
                     fullpath = os.path.join(path, fn)
 
                     try:
-                        photo = Photo(fullpath, exiftool_instance=et)
+                        photo = Photo(fullpath, metadata=et.get_metadata(fullpath))
                     except (InvalidFile, UnknownCamera) as e:
                         raise
 
@@ -142,67 +113,40 @@ class DirectoryRAWConverter(object):
 
         return cr2_files
 
-    def gen_wb(self, photos):
-        bracket_count = photos[0].bracket_count
-        total_photos = len(photos)
-        photo_number = (bracket_count // 2) + 1 if total_photos >= bracket_count else 0
-        return self.wb.generate_for(photos[photo_number])
+    def is_locked(self, srcpath, dstpath):
+        result = False
+        name = os.path.basename(srcpath)
+        if name in self.protected_dirs:
+            log.debug('Пропуск служебного каталога: {0}'.format(srcpath))
+            result = True
 
-    def check_already_converted(self, dstdir, photos):
-        new_photos = list()
-        for photo in photos:
-            dst_filename = os.path.join(dstdir, '{0}.{1}'.format(photo.name, self.dst_format))
-            if not os.path.exists(dst_filename):
-                new_photos.append(photo)
+        if is_locked(srcpath, dstpath, 'ufraw-batch') or is_locked(srcpath, dstpath, 'enfuse'):
+            log.status = 'Каталог `{0}` уже обрабатывается другой копией конвертера. Пропускаем'.format(srcpath)
+            result = True
 
-        return new_photos
+        return result
 
-    def convert(self, path, filenames, force=False):
-        dstdir = os.path.join(path, self.dst_dirname)
+    def next_dir(self, srcpath):
+        dstpath = os.path.join(srcpath, self.dst_dirname)
+        if not self.is_locked(srcpath=srcpath, dstpath=dstpath):
+            filenames = [f for f in scandir.listdir(srcpath) if os.path.isfile(f)]
+            if filenames:
+                yield srcpath, dstpath, filenames
 
-        if force:
-            shutil.rmtree(dstdir, ignore_errors=True)
+    def convert(self, src, force=False):
+        for (srcpath, dstpath, filenames) in self.next_dir(srcpath=src):
+            photos = self.collect_photos(srcpath, filenames=filenames)
 
-        makedirs(dstdir, mode=0o775)
-
-        photos = self.collect_raw(path, filenames=filenames)
-        self.check_already_converted(dstdir=dstdir, photos=photos)
-
-        if photos:
-            queue = Queue()
-            for photo in photos:
-                queue.put(photo)
-
-            threads = [threading.Thread(
-                target=convert_worker,
-                kwargs=dict(
-                    queue=queue,
-                    dstdir=dstdir,
-                    img_format=self.dst_format,
-                    wb=self.gen_wb(photos),
-                ),
-            ) for _i in range(cpus)]
-
-            for thread in threads:
-                thread.setDaemon(True)
-                thread.start()
-
-            for thread in threads:
-                thread.join()
+            tiffs = self.converter.convert(raw_photos=photos, dstpath=dstpath, force=force)
+            if tiffs:
+                yield tiffs
 
 
-class WalkRAWConverter(object):
+class RecursiveRAWConverter(DirectoryRAWConverter):
 
-    def __init__(self, dst_dirname=None, wb_mode=None, wb_source=None):
-        self.dir_converter = DirectoryRAWConverter(dst_dirname=dst_dirname)
-        self.dir_converter.set_wb_mode(wb_mode)
+    def next_dir(self, srcpath):
+        for (srcpath, _, filenames) in scandir.walk(srcpath, followlinks=False):
+            dstpath = os.path.join(srcpath, self.dst_dirname)
 
-
-    def convert(self, src_dir, force=False):
-        for (srcpath, dirs, files) in scandir.walk(src_dir):
-
-            if is_locked(src_dir, srcpath, 'ufraw-batch') or is_locked(src_dir, srcpath, 'enfuse'):
-                log.status = 'Каталог `{0}` уже обрабатывается другой копией конвертера. Пропускаем'.format(srcpath)
-                continue
-
-            self.dir_converter.convert(path=srcpath, filenames=files, force=force)
+            if filenames and not self.is_locked(srcpath=srcpath, dstpath=dstpath):
+                yield srcpath, dstpath, filenames

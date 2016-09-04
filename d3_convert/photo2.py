@@ -12,11 +12,11 @@ seq_re = re.compile(r'(\d{4,})')
 
 class Photo(object):
 
-    def __init__(self, filename, exiftool_instance):
+    def __init__(self, filename, metadata=None):
         self._filename = filename
         self._name = None
 
-        self._metadata = exiftool_instance.get_metadata(self._filename)
+        self._metadata = self.filter_metadata(metadata=metadata)
 
         try:
             maker = self['EXIF:Make']
@@ -36,6 +36,9 @@ class Photo(object):
 
         self.camera = camera_model(self)
 
+    def filter_metadata(self, metadata):
+        return metadata
+
     @property
     def filename(self):
         return self._filename
@@ -54,6 +57,15 @@ class Photo(object):
     @property
     def dirname(self):
         return os.path.abspath(os.path.dirname(self.filename))
+
+    def get_metadata(self):
+        return self._metadata.copy()
+
+    def copy_metadata(self, dst_photo, excludes=None):
+        raise NotImplementedError()
+
+    def save_metadata(self):
+        raise NotImplementedError()
 
     @property
     def seq_number(self):
@@ -80,3 +92,15 @@ class Photo(object):
 
     def __repr__(self):
         return '<Photo: {0}>'.format(self.filename)
+
+
+class TiffPhoto(Photo):
+
+    def __repr__(self):
+        return '<TiffPhoto: {0}>'.format(self.filename)
+
+
+class BlendPhoto(Photo):
+
+    def __repr__(self):
+        return '<BlendPhoto: {0}>'.format(self.filename)
