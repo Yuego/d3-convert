@@ -9,6 +9,7 @@ def copy_exif_to_cmd(src_photo, dst_photo, excludes=None):
         'exiftool',
         '-tagsFromFile',
         src_photo.filename,
+        '-overwrite_original',
     ]
 
     if excludes and isinstance(excludes, (list, tuple)):
@@ -44,6 +45,7 @@ def convert_jpg_to_cmd(src_filename, dst_filename, **kwargs):
     return [
         'convert',
         src_filename,
+        '-rotate',  '90',
         dst_filename,
     ]
 

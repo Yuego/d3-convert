@@ -10,10 +10,12 @@ from .commands import blend_to_cmd, convert_jpg_to_cmd, convert_to_cmd, get_blen
 from .process import Process
 
 
-remove_metadata = [
-    'EXIF:Compression',
+remove_metadata_convert = (
     'EXIF:Orientation',
-]
+)
+remove_metadata_blend = remove_metadata_convert + (
+    'EXIF:Compression',
+)
 
 
 def blend_worker(queue, dstpath, processed, errors, **kwargs):
@@ -35,7 +37,7 @@ def blend_worker(queue, dstpath, processed, errors, **kwargs):
             if not batch_len % 2 == 0:
                 half_batch += 1
 
-            blend = BlendPhoto(filename=blend_filename, metadata=batch[half_batch], exclude_tags=remove_metadata)
+            blend = BlendPhoto(filename=blend_filename, metadata=batch[half_batch], exclude_tags=remove_metadata_blend)
 
             processed.append(blend)
         else:
@@ -65,16 +67,10 @@ def convert_worker(queue, dstpath, img_format, processed, errors, wb=None, force
             log.debug('`{0}` сконвертирован в каталог: {1}'.format(photo.filename, dstpath))
             tiff_filename = os.path.join(dstpath, '{0}.tif'.format(photo.name))
 
-            if photo.type == 'jpg':
-                tiff = TiffPhoto(filename=tiff_filename, metadata=photo)
-            else:
-                tiff = TiffPhoto(filename=tiff_filename, metadata=photo.get_metadata())
+            tiff = TiffPhoto(filename=tiff_filename, metadata=photo, exclude_tags=remove_metadata_convert)
 
             processed.append(tiff)
 
         elif 'error' in result:
             log.error('`{0}` не сконвертирован из-за ошибки:\n\r {1}'.format(photo.filename, result))
         log.progress()
-
-        print(result)
-

@@ -43,6 +43,7 @@ class ImageProcessor(object):
                     try:
                         photo = Photo(fullpath, metadata=et.get_metadata(fullpath))
                     except (InvalidFile, UnknownCamera) as e:
+                        log.warning('Не могу прочесть EXIF из {0}. Пробуем JPG'.format(fullpath))
                         # FallBack to JPG
                         for _fn in filenames:
                             _filename, _, _ext = _fn.lower().rpartition('.')
@@ -51,14 +52,13 @@ class ImageProcessor(object):
                                 try:
                                     photo = Photo(_fullpath, metadata=et.get_metadata(_fullpath))
                                 except (InvalidFile, UnknownCamera):
-                                    raise
+                                    log.warning('JPG из {0} тоже не получилось. Пропускаем...'.format(_fullpath))
                                 else:
+                                    photo_files.append(photo)
                                     break
+                    else:
+                        photo_files.append(photo)
 
-                        log.warning('Can`t read EXIF data from file {0}. Skipping...'.format(fullpath))
-                        continue
-
-                    photo_files.append(photo)
         return photo_files
 
     def is_locked(self, srcpath, dstpath):
