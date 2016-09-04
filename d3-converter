@@ -38,10 +38,16 @@ if __name__ == '__main__':
     if src is not None and src and src != '/':
         src = os.path.realpath(src)
 
-        tiff_dst = arguments.pop('--tiff-dst', 'tiff')
-        blend_dst = arguments.pop('--blend-dst', 'blend')
+        tiff_dst = arguments.pop('--tiff-dst')
+        if tiff_dst is None:
+            tiff_dst = 'tiff'
+        blend_dst = arguments.pop('--blend-dst')
+        if blend_dst is None:
+            blend_dst = 'blend'
 
-        wb_mode = arguments.pop('--wb', 'camera')
+        wb_mode = arguments.pop('--wb')
+        if wb_mode is None:
+            wb_mode = 'camera'
         wb_source = None
         # TODO: довести до ума WB из конкретного файла
         if False and wb_mode not in ['camera', 'auto']:

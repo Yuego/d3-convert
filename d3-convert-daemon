@@ -55,8 +55,12 @@ if __name__ == '__main__':
         src = os.path.realpath(src)
         daemon_name = path_re.sub('', src).lower()
 
-        tiff_dst = arguments.pop('--tiff-dst', 'tiff')
-        blend_dst = arguments.pop('--blend-dst', 'blend')
+        tiff_dst = arguments.pop('--tiff-dst')
+        if tiff_dst is None:
+            tiff_dst = 'tiff'
+        blend_dst = arguments.pop('--blend-dst')
+        if blend_dst is None:
+            blend_dst = 'blend'
 
         try:
             timeout = int(arguments.pop('--timeout'))
