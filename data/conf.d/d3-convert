@@ -1,7 +1,8 @@
 
 src=""
 
-dst=""
+tiff_dst="tiff"
+blend_dst="blend"
 
 force=""
 

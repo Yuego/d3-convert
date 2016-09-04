@@ -10,8 +10,11 @@ pidpath="/run/d3-convert"
 pidfile="${pidpath}/${pidfile:-d3-convert-daemon.pid}"
 uid=${uid:-0}
 gid=${gid:-0}
-if [ ! -z "${dst}" ]; then
-    command_args="${command_args} --dst=${dst}"
+if [ ! -z "${tiff_dst}" ]; then
+    command_args="${command_args} --tiff-dst=${tiff_dst}"
+fi
+if [ ! -z "${blend_dst}" ]; then
+    command_args="${command_args} --blend-dst=${blend_dst}"
 fi
 if [ ! -z "${force}" ]; then
     command_args="${command_args} --force"
