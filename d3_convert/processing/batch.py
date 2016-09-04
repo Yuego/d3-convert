@@ -89,24 +89,33 @@ class BatchRAWConverter(Batch):
 
 class BatchTIFFBlender(Batch):
 
+    def check_sequence_numbers(self, batch, length):
+        for i in range(0, length - 1):
+                if batch[i].seq_number + 1 != batch[i+1].seq_number:
+                    return False
+
+        return True
+
     def get_blend_batches(self, tiff_photos):
         bracketed_photos = sorted([p for p in tiff_photos if p.is_bracketed],
                                   key=lambda p: p.seq_number)
 
-        while len(bracketed_photos) > bracketed_photos[0].bracket_count - 1:
+        while bracketed_photos and len(bracketed_photos) > bracketed_photos[0].bracket_count - 1:
             bracket_count = bracketed_photos[0].bracket_count
 
             batch = bracketed_photos[0:bracket_count]
 
-            ordered_batch = sorted([p for p in batch], key=lambda p: p.bracket_value, reverse=True)
+            if self.check_sequence_numbers(batch, bracket_count):
+                ordered_batch = sorted([p for p in batch], key=lambda p: p.bracket_value, reverse=True)
 
-            subs = []
-            for j in range(0, bracket_count-1):
-                subs.append(ordered_batch[j].bracket_value - ordered_batch[j+1].bracket_value)
+                subs = []
+                for j in range(0, bracket_count-1):
+                    subs.append(ordered_batch[j].bracket_value - ordered_batch[j+1].bracket_value)
 
-            if sum(subs) / len(subs) == subs[0]:
-                yield bracketed_photos[0: bracket_count]
-                bracketed_photos = bracketed_photos[bracket_count:]
+                if sum(subs) / len(subs) == subs[0]:
+                    yield bracketed_photos[0: bracket_count]
+                    bracketed_photos = bracketed_photos[bracket_count:]
+                    continue
 
             bracketed_photos = bracketed_photos[1:]
 
@@ -129,11 +138,13 @@ class BatchTIFFBlender(Batch):
                 queue.put(batch)
 
         if not queue.empty():
+            makedirs(dstpath, mode=0o775)
+
             threads = [threading.Thread(
                 target=blend_worker,
                 kwargs=dict(
                     queue=queue,
-                    dstdir=dstpath,
+                    dstpath=dstpath,
                     blends=blends,
                     errors=errors,
                 ),

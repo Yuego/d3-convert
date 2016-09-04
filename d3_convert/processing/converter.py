@@ -18,11 +18,11 @@ class RAWConverter(ImageProcessor):
         self.batch.set_wb_mode(wb_mode)
 
 
-class DirectoryRawConverter(RAWConverter, DirectoryImageProcessorMixin):
+class DirectoryRawConverter(DirectoryImageProcessorMixin, RAWConverter):
     pass
 
 
-class RecursiveRAWConverter(RAWConverter, RecursiveImageProcessorMixin):
+class RecursiveRAWConverter(RecursiveImageProcessorMixin, RAWConverter):
     pass
 
 

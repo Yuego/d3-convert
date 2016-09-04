@@ -3,24 +3,26 @@
 """D3 Converter
 
 Usage:
-    convert <src> [--dst=<dstdir>] [--force] [--wb=auto|camera|manual|<src>] [--verbose|--debug] [--lockname=<name>]
+    convert <src> [--tiff-dst=<tiff_dirname>] [--blend-dst=<blend_dirname>] [--force] [--wb=auto|camera|<filename>] [--recursive] [--verbose|--debug] [--lockname=<name>]
     convert (-h | --help)
     convert --version
 
 Options:
-    -h --help                   Show this screen.
-    --version                   Show version
-    --dst=<dstdir>              Set destination directory name (inside src dir).
-    --force                     Force reconvert existing files
-    --wb=auto|camera|<src>      White Balance: auto, from camera or from ufraw-config file (*.ufraw)
-    --verbose                   Display info level messages
-    --debug                     Display debug level messages
-    --lockname=<name>           Lockfile name
+    -h --help                       Show this screen.
+    --version                       Show version
+    --tiff-dst=<tiff_dirname>       Set TIFF`s destination directory name (inside src directory).
+    --blend-dst=<blend_dirname>     Set BLEND`s destination directory name (inside tiff directory).
+    --force                         Force reconvert existing files
+    --wb=auto|camera|<filename>     White Balance: auto, from camera or from ufraw-config file (*.ufraw)
+    --recursive                     Recursive process all nested directories
+    --verbose                       Display info level messages
+    --debug                         Display debug level messages
+    --lockname=<name>               Lockfile name
 
 """
 from __future__ import unicode_literals, absolute_import
 
-from d3_convert.converter import DirectoryRAWConverter
+from d3_convert.processing import DirectoryRawConverter, RecursiveRAWConverter, BatchTIFFBlender
 from d3_convert.log import log
 from d3_convert.singleton import SingleInstance
 from d3_convert.utils import path_re
@@ -36,7 +38,8 @@ if __name__ == '__main__':
     if src is not None and src and src != '/':
         src = os.path.realpath(src)
 
-        dst = arguments.pop('--dst', None)
+        tiff_dst = arguments.pop('--tiff-dst', 'tiff')
+        blend_dst = arguments.pop('--blend-dst', 'blend')
 
         wb_mode = arguments.pop('--wb', 'camera')
         wb_source = None
@@ -49,6 +52,7 @@ if __name__ == '__main__':
                 wb = 'manual'
 
         force = arguments.pop('--force', False)
+        recursive = arguments.pop('--recursive', False)
 
         verbose = arguments.pop('--verbose', False)
         debug = arguments.pop('--debug', False)
@@ -63,7 +67,10 @@ if __name__ == '__main__':
 
         instance = SingleInstance(flavor_id=lockname)
 
-        converter = DirectoryRAWConverter(dst_dirname=dst, wb_mode=wb_mode, wb_source=wb_source)
+        converter_class = RecursiveRAWConverter if recursive else DirectoryRawConverter
 
-        for tiffs in converter.convert(src=src, force=force):
-            pass
+        converter = converter_class(dst_dirname=tiff_dst, wb_mode=wb_mode, wb_source=wb_source)
+        blender = BatchTIFFBlender()
+        for tiffs in converter.process(src=src, force=force):
+            if tiffs:
+                blender.process(tiffs, os.path.join(tiffs[0].dirname, blend_dst), force=force)

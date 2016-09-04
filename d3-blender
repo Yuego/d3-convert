@@ -8,18 +8,18 @@ Usage:
     blend --version
 
 Options:
-    -h --help       Show this screen.
-    --version       Show version
-    --dst=<dstdir>  Set destination dir.
-    --force         Force reblend existing files
-    --verbose           Display info level messages
-    --debug             Display debug level messages
-    --lockname=<name>   Lockfile name
+    -h --help                   Show this screen.
+    --version                   Show version
+    --dst=<dst_dirname>         Set destination directory name (inside src dir, relative path).
+    --force                     Force reblend existing files
+    --verbose                   Display info level messages
+    --debug                     Display debug level messages
+    --lockname=<name>           Lockfile name
 
 """
 from __future__ import unicode_literals, absolute_import
 
-from d3_convert.blend import blend_dir
+from d3_convert.processing import DirectoryTIFFBlender
 from d3_convert.log import log
 from d3_convert.singleton import SingleInstance
 from d3_convert.utils import path_re
@@ -54,4 +54,7 @@ if __name__ == '__main__':
 
         instance = SingleInstance(flavor_id=lockname)
 
-        blend_dir(src, dst, force)
+        blender = DirectoryTIFFBlender(dst_dirname=dst)
+
+        for blends in blender.process(src, force=force):
+            pass

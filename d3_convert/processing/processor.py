@@ -81,7 +81,7 @@ class DirectoryImageProcessorMixin(object):
 
     def next_dir(self, srcpath, dst_dirname, is_locked_func):
         dstpath = os.path.join(srcpath, dst_dirname)
-        if not  is_locked_func(srcpath=srcpath, dstpath=dstpath):
+        if not is_locked_func(srcpath=srcpath, dstpath=dstpath):
             filenames = [f for f in scandir.listdir(srcpath) if os.path.isfile(os.path.join(srcpath, f))]
             if filenames:
                 yield srcpath, dstpath, filenames

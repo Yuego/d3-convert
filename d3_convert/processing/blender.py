@@ -7,12 +7,14 @@ from .processor import ImageProcessor, DirectoryImageProcessorMixin, RecursiveIm
 
 
 class TIFFBlender(ImageProcessor):
+    default_src_format = 'tif'
+    default_dst_dirname = 'blend'
     batch_class = BatchTIFFBlender
 
 
-class DirectoryTIFFBlender(TIFFBlender, DirectoryImageProcessorMixin):
+class DirectoryTIFFBlender(DirectoryImageProcessorMixin, TIFFBlender):
     pass
 
 
-class RecursiveTIFFBlender(TIFFBlender, RecursiveImageProcessorMixin):
+class RecursiveTIFFBlender(RecursiveImageProcessorMixin, TIFFBlender):
     pass
