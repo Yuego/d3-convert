@@ -64,6 +64,9 @@ class WhiteBalance(object):
         return result
 
     def setup(self, mode, filename=None):
+        if mode is None:
+            mode = 'camera'
+
         assert mode in ['auto', 'camera', 'manual'], 'Unknown WhiteBalance mode: {0}'.format(mode)
 
         self.mode = mode

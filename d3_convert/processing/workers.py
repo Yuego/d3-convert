@@ -3,10 +3,10 @@ from __future__ import unicode_literals, absolute_import
 
 import os
 
+from ..utils.compat import Empty
+from ..log import log
+from ..photo import BlendPhoto, TiffPhoto
 from .commands import blend_to_cmd, convert_to_cmd, get_blend_filename
-from .compat import Empty
-from .log import log
-from .photo2 import BlendPhoto, TiffPhoto
 from .process import Process
 
 
@@ -16,16 +16,17 @@ remove_metadata = [
 ]
 
 
-def blend_worker(queue, dstdir, blends, errors):
+def blend_worker(queue, dstpath, blends, errors):
     while True:
         try:
             batch = queue.get(False)
         except Empty:
             return
 
-        blend_filename = get_blend_filename(dstdir=dstdir, batch=batch)
+        blend_filename = get_blend_filename(dstpath=dstpath, batch=batch)
         blend_cmd = blend_to_cmd(dst_filename=blend_filename, batch=batch)
-        p = Process(blend_cmd, cwd=dstdir)
+        p = Process(blend_cmd, cwd=dstpath)
+        p.run()
 
         result = ' '.join([p.result, p.errors]).lower()
         if 'error' not in result:
@@ -34,12 +35,7 @@ def blend_worker(queue, dstdir, blends, errors):
             if not batch_len % 2 == 0:
                 half_batch += 1
 
-            metadata = batch[half_batch].get_metadata()
-            for rm in remove_metadata:
-                metadata.pop(rm, None)
-
-            blend = BlendPhoto(filename=blend_filename, metadata=metadata)
-            blend.save_metadata()
+            blend = BlendPhoto(filename=blend_filename, metadata=batch[half_batch], exclude_tags=remove_metadata)
 
             blends.append(blend)
         else:

@@ -5,18 +5,24 @@ from importlib import import_module
 import os
 import re
 
+from .processing.commands import copy_exif_to_cmd
 from .exceptions import InvalidFile, UnknownCamera
+from .processing.process import Process
 
 seq_re = re.compile(r'(\d{4,})')
 
 
 class Photo(object):
 
-    def __init__(self, filename, metadata=None):
+    def __init__(self, filename, metadata=None, exclude_tags=None):
         self._filename = filename
         self._name = None
 
-        self._metadata = self.filter_metadata(metadata=metadata)
+        if isinstance(metadata, Photo):
+            self.update_metadata(src_photo=metadata, excludes=exclude_tags)
+            metadata = metadata.get_metadata()
+
+        self._metadata = self.filter_metadata(metadata=metadata, excludes=exclude_tags)
 
         try:
             maker = self['EXIF:Make']
@@ -36,7 +42,10 @@ class Photo(object):
 
         self.camera = camera_model(self)
 
-    def filter_metadata(self, metadata):
+    def filter_metadata(self, metadata, excludes=None):
+        if excludes and isinstance(excludes, (list, tuple)):
+            for tag in excludes:
+                metadata.pop(tag, None)
         return metadata
 
     @property
@@ -61,11 +70,15 @@ class Photo(object):
     def get_metadata(self):
         return self._metadata.copy()
 
-    def copy_metadata(self, dst_photo, excludes=None):
-        raise NotImplementedError()
+    def update_metadata(self, src_photo, excludes=None):
+        cmd = copy_exif_to_cmd(src_photo=src_photo, dst_photo=self, excludes=excludes)
 
-    def save_metadata(self):
-        raise NotImplementedError()
+        p = Process(cmd, cwd=self.dirname)
+        p.run()
+
+        result = ' '.join([p.result, p.errors]).lower()
+        if 'updated' not in result:
+            raise RuntimeError('Can`t update EXIF info for: {0}'.format(self.filename))
 
     @property
     def seq_number(self):
