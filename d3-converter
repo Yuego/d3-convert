@@ -3,7 +3,7 @@
 """D3 Converter
 
 Usage:
-    convert <src> [--tiff-dst=<tiff_dirname>] [--blend-dst=<blend_dirname>] [--force] [--wb=auto|camera|<filename>] [--recursive] [--verbose|--debug] [--lockname=<name>]
+    convert <src> [--tiff-dst=<tiff_dirname>] [--blend-dst=<blend_dirname>] [--force|--clear] [--wb=auto|camera|<filename>] [--recursive] [--verbose|--debug] [--lockname=<name>]
     convert (-h | --help)
     convert --version
 
@@ -13,6 +13,7 @@ Options:
     --tiff-dst=<tiff_dirname>       Set TIFF`s destination directory name (inside src directory).
     --blend-dst=<blend_dirname>     Set BLEND`s destination directory name (inside tiff directory).
     --force                         Force reconvert existing files
+    --clear                         Remove dst dirs before processing
     --wb=auto|camera|<filename>     White Balance: auto, from camera or from ufraw-config file (*.ufraw)
     --recursive                     Recursive process all nested directories
     --verbose                       Display info level messages
@@ -22,7 +23,12 @@ Options:
 """
 from __future__ import unicode_literals, absolute_import
 
-from d3_convert.processing import DirectoryRawConverter, RecursiveRAWConverter, BatchTIFFBlender
+from d3_convert.processing import (
+    SingleRAWConverter,
+    DirectoryRAWConverter,
+    RecursiveRAWConverter,
+    BatchTIFFBlender,
+)
 from d3_convert.log import log
 from d3_convert.singleton import SingleInstance
 from d3_convert.utils import path_re
@@ -57,11 +63,12 @@ if __name__ == '__main__':
                 wb_source = wb_mode
                 wb = 'manual'
 
-        force = arguments.pop('--force', False)
-        recursive = arguments.pop('--recursive', False)
+        force = arguments.pop('--force')
+        clear = arguments.pop('--clear')
+        recursive = arguments.pop('--recursive')
 
-        verbose = arguments.pop('--verbose', False)
-        debug = arguments.pop('--debug', False)
+        verbose = arguments.pop('--verbose')
+        debug = arguments.pop('--debug')
         if verbose:
             log.level = log.INFO
         elif debug:
@@ -73,10 +80,15 @@ if __name__ == '__main__':
 
         instance = SingleInstance(flavor_id=lockname)
 
-        converter_class = RecursiveRAWConverter if recursive else DirectoryRawConverter
+        src_format = None
+        if os.path.isfile(src):
+            converter_class = SingleRAWConverter
+            src_format = src.rpartition('.')[-1].lower()
+        else:
+            converter_class = RecursiveRAWConverter if recursive else DirectoryRAWConverter
 
-        converter = converter_class(dst_dirname=tiff_dst, wb_mode=wb_mode, wb_source=wb_source)
+        converter = converter_class(src_format=src_format, dst_dirname=tiff_dst, wb_mode=wb_mode, wb_source=wb_source)
         blender = BatchTIFFBlender()
-        for tiffs in converter.process(src=src, force=force):
+        for tiffs in converter.process(src=src, force=force, clear=clear):
             if tiffs:
-                blender.process(tiffs, os.path.join(tiffs[0].dirname, blend_dst), force=force)
+                blender.process(tiffs, os.path.join(tiffs[0].dirname, blend_dst), force=force, clear=clear)

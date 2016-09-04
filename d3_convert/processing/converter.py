@@ -2,7 +2,12 @@
 from __future__ import unicode_literals, absolute_import
 
 from .batch import BatchRAWConverter
-from .processor import ImageProcessor, DirectoryImageProcessorMixin, RecursiveImageProcessorMixin
+from .processor import (
+    ImageProcessor,
+    SingleImageProcessorMixin,
+    DirectoryImageProcessorMixin,
+    RecursiveImageProcessorMixin,
+)
 
 
 class RAWConverter(ImageProcessor):
@@ -18,7 +23,11 @@ class RAWConverter(ImageProcessor):
         self.batch.set_wb_mode(wb_mode)
 
 
-class DirectoryRawConverter(DirectoryImageProcessorMixin, RAWConverter):
+class SingleRAWConverter(SingleImageProcessorMixin, RAWConverter):
+    pass
+
+
+class DirectoryRAWConverter(DirectoryImageProcessorMixin, RAWConverter):
     pass
 
 

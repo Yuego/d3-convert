@@ -6,7 +6,7 @@ import os
 from ..utils.compat import Empty
 from ..log import log
 from ..photo import BlendPhoto, TiffPhoto
-from .commands import blend_to_cmd, convert_to_cmd, get_blend_filename
+from .commands import blend_to_cmd, convert_jpg_to_cmd, convert_to_cmd, get_blend_filename
 from .process import Process
 
 
@@ -16,7 +16,7 @@ remove_metadata = [
 ]
 
 
-def blend_worker(queue, dstpath, blends, errors):
+def blend_worker(queue, dstpath, processed, errors, **kwargs):
     while True:
         try:
             batch = queue.get(False)
@@ -37,12 +37,14 @@ def blend_worker(queue, dstpath, blends, errors):
 
             blend = BlendPhoto(filename=blend_filename, metadata=batch[half_batch], exclude_tags=remove_metadata)
 
-            blends.append(blend)
+            processed.append(blend)
         else:
-            pass
+            log.warning('Can`t blend files: {0}'.format(repr(batch)))
+            log.warning('ERROR: {0}'.format(result))
+        log.progress()
 
 
-def convert_worker(queue, dstpath, img_format, tiffs, errors, wb=None):
+def convert_worker(queue, dstpath, img_format, processed, errors, wb=None, force=False, **kwargs):
     while True:
         try:
             photo = queue.get(False)
@@ -50,18 +52,29 @@ def convert_worker(queue, dstpath, img_format, tiffs, errors, wb=None):
             return
 
         log.debug('Обработка файла: {0}'.format(photo.filename))
-        cmd = convert_to_cmd(dstdir=dstpath, img_format=img_format, filename=photo.filename, wb=wb)
+        if photo.type == 'jpg':
+            dst_filename = os.path.join(dstpath, '{0}.{1}'.format(photo.name, img_format))
+            cmd = convert_jpg_to_cmd(src_filename=photo.filename, dst_filename=dst_filename)
+        else:
+            cmd = convert_to_cmd(dstdir=dstpath, img_format=img_format, filename=photo.filename, wb=wb, force=force)
         p = Process(cmd, cwd=dstpath)
         p.run()
 
         result = ' '.join([p.result, p.errors]).lower()
-        if 'saved' in result:
+        if 'saved' in result or not result.strip():
             log.debug('`{0}` сконвертирован в каталог: {1}'.format(photo.filename, dstpath))
             tiff_filename = os.path.join(dstpath, '{0}.tif'.format(photo.name))
-            tiff = TiffPhoto(filename=tiff_filename, metadata=photo.get_metadata())
-            tiffs.append(tiff)
+
+            if photo.type == 'jpg':
+                tiff = TiffPhoto(filename=tiff_filename, metadata=photo)
+            else:
+                tiff = TiffPhoto(filename=tiff_filename, metadata=photo.get_metadata())
+
+            processed.append(tiff)
 
         elif 'error' in result:
             log.error('`{0}` не сконвертирован из-за ошибки:\n\r {1}'.format(photo.filename, result))
         log.progress()
+
+        print(result)
 

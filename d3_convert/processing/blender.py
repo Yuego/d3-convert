@@ -3,7 +3,11 @@ from __future__ import unicode_literals, absolute_import
 
 
 from .batch import BatchTIFFBlender
-from .processor import ImageProcessor, DirectoryImageProcessorMixin, RecursiveImageProcessorMixin
+from .processor import (
+    ImageProcessor,
+    DirectoryImageProcessorMixin,
+    RecursiveImageProcessorMixin
+)
 
 
 class TIFFBlender(ImageProcessor):

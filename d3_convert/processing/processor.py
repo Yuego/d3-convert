@@ -43,10 +43,22 @@ class ImageProcessor(object):
                     try:
                         photo = Photo(fullpath, metadata=et.get_metadata(fullpath))
                     except (InvalidFile, UnknownCamera) as e:
-                        raise
+                        # FallBack to JPG
+                        for _fn in filenames:
+                            _filename, _, _ext = _fn.lower().rpartition('.')
+                            if ext == 'jpg':
+                                _fullpath = os.path.join(path, fn)
+                                try:
+                                    photo = Photo(_fullpath, metadata=et.get_metadata(_fullpath))
+                                except (InvalidFile, UnknownCamera):
+                                    raise
+                                else:
+                                    break
+
+                        log.warning('Can`t read EXIF data from file {0}. Skipping...'.format(fullpath))
+                        continue
 
                     photo_files.append(photo)
-
         return photo_files
 
     def is_locked(self, srcpath, dstpath):
@@ -65,16 +77,25 @@ class ImageProcessor(object):
     def next_dir(self, srcpath, dst_dirname, is_locked_func):
         raise NotImplementedError()
 
-    def process(self, src, force=False):
+    def process(self, src, force=False, clear=False):
         for (srcpath, dstpath, filenames) in self.next_dir(srcpath=src,
                                                            dst_dirname=self.dst_dirname,
                                                            is_locked_func=self.is_locked):
 
             photos = self.collect_photos(srcpath, filenames=filenames)
-
-            result = self.batch.process(src_photos=photos, dstpath=dstpath, force=force)
+            result = self.batch.process(src_photos=photos, dstpath=dstpath, force=force, clear=clear)
             if result:
                 yield result
+
+
+class SingleImageProcessorMixin(object):
+
+    def next_dir(self, srcpath, dst_dirname, is_locked_func):
+        filename = os.path.basename(srcpath)
+        dirname = os.path.dirname(srcpath)
+        dstpath = os.path.join(dirname, dst_dirname)
+        if not is_locked_func(srcpath=dirname, dstpath=dstpath):
+            yield dirname, dstpath, [filename]
 
 
 class DirectoryImageProcessorMixin(object):

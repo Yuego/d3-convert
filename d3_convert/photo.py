@@ -17,6 +17,7 @@ class Photo(object):
     def __init__(self, filename, metadata=None, exclude_tags=None):
         self._filename = filename
         self._name = None
+        self._type = None
 
         if isinstance(metadata, Photo):
             self.update_metadata(src_photo=metadata, excludes=exclude_tags)
@@ -53,15 +54,24 @@ class Photo(object):
         return self._filename
 
     @property
+    def basename(self):
+        return os.path.basename(self.filename)
+
+    @property
     def name(self):
         if self._name is None:
-            filename = os.path.basename(self.filename)
-
-            name, _, ext = filename.rpartition('.')
+            name, _, ext = self.basename.rpartition('.')
             if not name:
                 name = ext
             self._name = name
         return self._name
+
+    @property
+    def type(self):
+        if self._type is None:
+            name, _, ext = self.basename.rpartition('.')
+            self._type = ext.lower()
+        return self._type
 
     @property
     def dirname(self):

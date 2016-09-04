@@ -40,7 +40,15 @@ def blend_to_cmd(dst_filename, batch):
     return cmd
 
 
-def convert_to_cmd(dstdir, img_format, filename, wb=None):
+def convert_jpg_to_cmd(src_filename, dst_filename, **kwargs):
+    return [
+        'convert',
+        src_filename,
+        dst_filename,
+    ]
+
+
+def convert_to_cmd(dstdir, img_format, filename, wb=None, force=False):
     cmd = [
         'ufraw-batch',
         '--out-type={0}'.format(img_format),
@@ -49,13 +57,15 @@ def convert_to_cmd(dstdir, img_format, filename, wb=None):
         '--zip',
         '--exif',
         #'--silent',
-        #'--overwrite',
         '--out-path={0}'.format(dstdir),
         filename,
     ]
 
     if wb and isinstance(wb, (list, tuple)):
         cmd.extend(list(wb))
+
+    if force:
+        cmd.append('--overwrite')
 
     return cmd
 
