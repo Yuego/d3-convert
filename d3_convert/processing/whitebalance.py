@@ -39,8 +39,7 @@ class WhiteBalance(object):
 
             if temp is not None and green is not None:
                 break
-
-        if not temp or not green:
+        if temp is None or green is None:
             raise ValueError('WhiteBalance settings file not found in `{0}`'.format(source))
 
         return [
