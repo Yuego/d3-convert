@@ -7,7 +7,7 @@ import re
 
 from .processing.commands import copy_exif_to_cmd
 from .exceptions import InvalidFile, UnknownCamera
-from .processing.process import Process
+from .utils.process import Process
 
 seq_re = re.compile(r'(\d{4,})')
 

@@ -5,6 +5,7 @@ from lxml import etree
 import os
 import glob
 
+from ..log import log
 from ..utils.process import Process
 
 from .commands import get_wb_cmd
@@ -41,7 +42,8 @@ class WhiteBalance(object):
             if temp is not None and green is not None:
                 break
         if temp is None or green is None:
-            raise ValueError('WhiteBalance settings file not found in `{0}`'.format(source))
+            log.warning('Файл настроек ББ не найден в `{0}`. Использую ББ камеры.'.format(source))
+            return self.gen_camera_wb()
 
         return [
             '--temperature={0}'.format(temp.text),
