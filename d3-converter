@@ -42,6 +42,16 @@ import sys
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Converter v' + __version__)
 
+    kwargs = dict(
+        src=arguments.pop('<src>'),
+        tiff_dst=arguments.pop('--tiff-dst'),
+        blend_dst=arguments.pop('--blend-dst'),
+        wb=arguments.pop('--wb'),
+        force=arguments.pop('--force'),
+        clear=arguments.pop('--clear'),
+        recursive=arguments.pop('--recursive'),
+    )
+
     src = arguments.pop('<src>', None)
     if isinstance(src, (list, tuple)):
         src = [os.path.realpath(s) for s in src]

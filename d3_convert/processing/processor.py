@@ -6,7 +6,6 @@ from exiftool import ExifTool
 import os
 import scandir
 
-
 from ..exceptions import *
 from ..log import log
 from ..photo import Photo
@@ -159,8 +158,6 @@ class MultipleImagesProcessingMixin(ImageProcessorInterface):
         srcpath = srcs[0]
         dstpath = self.get_dstpath(srcpath=srcpath, dst_dirname=self.dst_dirname)
         filenames = [os.path.basename(s) for s in src]
-
-        print(srcpath, dstpath, filenames)
 
         photos = self.collect_photos(srcpath, filenames=filenames, mixed=True)
         result = self.batch.process(src_photos=photos, dstpath=dstpath, force=force, clear=clear)
