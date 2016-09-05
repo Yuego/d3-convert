@@ -16,7 +16,7 @@ Encoding=UTF-8
 Name=Работа с пачками изображений
 
 [Desktop Action convert-dir-nowb]
-Exec=konsole --hold -e d3-converter %f --clear --verbose --wb=camera
+Exec=konsole -e d3-converter %f --clear --verbose --wb=camera
 Name[ru]=Конвертировать каталог (ББ камеры)
 Name=Convert directory (camera WB)
 Comment[ru]=Конвертировать ВЕСЬ каталог без изменения ББ
@@ -37,7 +37,7 @@ Comment[ru]=Конвертировать ВЕСЬ каталог, определ
 
 
 [Desktop Action blend]
-Exec=konsole --hold -e d3-blender %f --clear --verbose
+Exec=konsole -e d3-blender %f --clear --verbose
 Name[ru]=Свести брэкетинг в каталоге
 Name=Blend bracketed images
 Comment[ru]=Свести все файлы заново

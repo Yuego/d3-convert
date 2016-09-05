@@ -4,8 +4,6 @@ src=""
 tiff_dst="tiff"
 blend_dst="blend"
 
-force=""
-
 timeout="1"
 
 uid=1001

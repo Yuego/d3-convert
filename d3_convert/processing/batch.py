@@ -177,14 +177,14 @@ class BatchTIFFBlender(Batch):
         filepath = os.path.join(dstpath, filename)
         return os.path.exists(filepath)
 
-    def get_threads_count(self, photos):
-        bracket_count = 1
-        for photo in photos:
-            if photo.is_bracketed:
-                bracket_count = photo.bracket_count
-                break
+    #def get_threads_count(self, photos):
+    #    bracket_count = 1
+    #    for photo in photos:
+    #        if photo.is_bracketed:
+    #            bracket_count = photo.bracket_count
+    #            break
 
-        return (cpus // bracket_count) * 2
+    #    return (cpus // bracket_count) * 2
 
     def get_worker_func(self):
         return blend_worker

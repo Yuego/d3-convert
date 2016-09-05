@@ -3,7 +3,7 @@
 """D3 Convert Daemon
 
 Usage:
-    d3-convert-daemon <src> [--tiff-dst=<tiff_dst_dirname>] [--blend-dst=<blend_dst_dirname>] [--force] [--timeout=<n>] [--uid=<id>] [--gid=<id>] [--pidfile=<path>] [--verbose|--debug] [--logfile=<path>]
+    d3-convert-daemon <src> [--tiff-dst=<tiff_dst_dirname>] [--blend-dst=<blend_dst_dirname>] [--force|--clear] [--timeout=<n>] [--uid=<id>] [--gid=<id>] [--pidfile=<path>] [--verbose|--debug] [--logfile=<path>]
     d3-convert-daemon (-h | --help)
     d3-convert-daemon --version
 
@@ -11,6 +11,7 @@ Options:
     --tiff-dst=<dstdir>         Set TIFF`s destination directory name (inside src directory).
     --blend-dst=<dstdir>        Set BLEND`s destination directory name (inside tiff directory).
     --force                     Force reconvert existing files
+    --clear                     Remove exis
     -h --help                   Show this screen.
     --version                   Show version
 
@@ -83,6 +84,8 @@ if __name__ == '__main__':
         except (TypeError, ValueError):
             gid = None
 
+        force = arguments.pop('--force')
+        clear = arguments.pop('--clear')
         verbose = arguments.pop('--verbose')
         debug = arguments.pop('--debug')
         if verbose:
@@ -97,9 +100,10 @@ if __name__ == '__main__':
 
         context = daemon.DaemonContext(umask=0o002, uid=uid, gid=gid, pidfile=pidfile, working_directory=src,
                                        stdout=logfile, stderr=logfile,
-                                       detach_process=False,
+                                       #detach_process=False,
                                        )
 
+        # Пока что деактивируем эти опции
         force = clear = False
         with context:
             main(src, tiff_dst, blend_dst, timeout, force, clear)
