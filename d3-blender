@@ -3,23 +3,23 @@
 """D3 Blender
 
 Usage:
-    blend <src> [--dst=<dstdir>] [--force] [--verbose|--debug] [--lockname=<name>]
+    blend <src> [--dst=<dstdir>] [--force|--clear] [--verbose|--debug] [--lockname=<name>]
     blend (-h | --help)
     blend --version
 
 Options:
-    -h --help       Show this screen.
-    --version       Show version
-    --dst=<dstdir>  Set destination dir.
-    --force         Force reblend existing files
-    --verbose           Display info level messages
-    --debug             Display debug level messages
-    --lockname=<name>   Lockfile name
+    -h --help                   Show this screen.
+    --version                   Show version
+    --dst=<dst_dirname>         Set destination directory name (inside src dir, relative path).
+    --force                     Force reblend existing files
+    --verbose                   Display info level messages
+    --debug                     Display debug level messages
+    --lockname=<name>           Lockfile name
 
 """
 from __future__ import unicode_literals, absolute_import
 
-from d3_convert.blend import blend_dir
+from d3_convert.processing import DirectoryTIFFBlender
 from d3_convert.log import log
 from d3_convert.singleton import SingleInstance
 from d3_convert.utils import path_re
@@ -31,27 +31,31 @@ import os
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Blender v' + __version__)
 
-    src = arguments.pop('<src>', None)
+    src = arguments.pop('<src>')
     if src is not None:
         src = os.path.realpath(src)
 
-        dst = arguments.pop('--dst', None)
+        dst = arguments.pop('--dst')
         if dst is None or dst == src:
             dst = os.path.join(src, 'blend')
 
-        force = arguments.pop('--force', False)
+        force = arguments.pop('--force')
+        clear = arguments.pop('--clear')
 
-        verbose = arguments.pop('--verbose', False)
-        debug = arguments.pop('--debug', False)
+        verbose = arguments.pop('--verbose')
+        debug = arguments.pop('--debug')
         if verbose:
             log.level = log.INFO
         elif debug:
             log.level = log.DEBUG
 
-        lockname = arguments.pop('--lockname', '')
-        if lockname is None:
+        lockname = arguments.pop('--lockname')
+        if not lockname:
             lockname = path_re.sub('', src).lower()
 
         instance = SingleInstance(flavor_id=lockname)
 
-        blend_dir(src, dst, force)
+        blender = DirectoryTIFFBlender(dst_dirname=dst)
+
+        for blends in blender.process(src, force=force, clear=clear):
+            pass

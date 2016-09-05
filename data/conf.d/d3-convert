@@ -1,9 +1,8 @@
 
 src=""
 
-dst=""
-
-force=""
+tiff_dst="tiff"
+blend_dst="blend"
 
 timeout="1"
 

@@ -26,6 +26,7 @@ setup(
     license='MIT',
     install_requires=[
         'docopt',
+        'exiftool',
         #'PyGObject',
         # media-libs/gexiv2
         'lxml',

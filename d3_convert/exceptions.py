@@ -1,8 +1,10 @@
 #coding: utf-8
 from __future__ import unicode_literals, absolute_import
 
-from .photo import Photo
+
+class InvalidFile(Exception):
+    pass
 
 
-class TifPhoto(Photo):
+class UnknownCamera(Exception):
     pass
