@@ -3,7 +3,7 @@
 """D3 Converter
 
 Usage:
-    convert <src> [--tiff-dst=<tiff_dirname>] [--blend-dst=<blend_dirname>] [--force|--clear] [--wb=auto|camera|<filename>] [--recursive] [--verbose|--debug] [--lockname=<name>]
+    convert <src>... [--tiff-dst=<tiff_dirname>] [--blend-dst=<blend_dirname>] [--force|--clear] [--wb=auto|camera|<filename>] [--recursive] [--verbose|--debug] [--lockname=<name>]
     convert (-h | --help)
     convert --version
 
@@ -25,6 +25,7 @@ from __future__ import unicode_literals, absolute_import
 
 from d3_convert.processing import (
     SingleRAWConverter,
+    MultipleRAWsConverter,
     DirectoryRAWConverter,
     RecursiveRAWConverter,
     BatchTIFFBlender,
@@ -35,60 +36,73 @@ from d3_convert.utils import path_re
 from d3_convert.version import __version__
 from docopt import docopt
 import os
+import sys
 
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Converter v' + __version__)
 
     src = arguments.pop('<src>', None)
-    if src is not None and src and src != '/':
+    if isinstance(src, (list, tuple)):
+        src = [os.path.realpath(s) for s in src]
+
+    elif src is not None and src and src != '/':
         src = os.path.realpath(src)
+    else:
+        log.warning('Некорректный источник: {0}'.format(src))
+        sys.exit(-1)
 
-        tiff_dst = arguments.pop('--tiff-dst')
-        if tiff_dst is None:
-            tiff_dst = 'tiff'
-        blend_dst = arguments.pop('--blend-dst')
-        if blend_dst is None:
-            blend_dst = 'blend'
+    tiff_dst = arguments.pop('--tiff-dst')
+    if tiff_dst is None:
+        tiff_dst = 'tiff'
+    blend_dst = arguments.pop('--blend-dst')
+    if blend_dst is None:
+        blend_dst = 'blend'
 
-        wb_mode = arguments.pop('--wb')
-        if wb_mode is None:
-            wb_mode = 'camera'
-        wb_source = None
-        # TODO: довести до ума WB из конкретного файла
-        if False and wb_mode not in ['camera', 'auto']:
-            if not os.path.isfile(wb_mode):
-                raise Exception('Unknown WhiteBalance soure: {0}'.format(wb_mode))
-            else:
-                wb_source = wb_mode
-                wb = 'manual'
+    wb_mode = arguments.pop('--wb')
+    if wb_mode is None:
+        wb_mode = 'camera'
+    wb_source = None
+    # TODO: довести до ума WB из конкретного файла
+    if False and wb_mode not in ['camera', 'auto']:
+        if not os.path.isfile(wb_mode):
+            raise Exception('Unknown WhiteBalance soure: {0}'.format(wb_mode))
+        else:
+            wb_source = wb_mode
+            wb = 'manual'
 
-        force = arguments.pop('--force')
-        clear = arguments.pop('--clear')
-        recursive = arguments.pop('--recursive')
+    force = arguments.pop('--force')
+    clear = arguments.pop('--clear')
+    recursive = arguments.pop('--recursive')
 
-        verbose = arguments.pop('--verbose')
-        debug = arguments.pop('--debug')
-        if verbose:
-            log.level = log.INFO
-        elif debug:
-            log.level = log.DEBUG
+    verbose = arguments.pop('--verbose')
+    debug = arguments.pop('--debug')
+    if verbose:
+        log.level = log.INFO
+    elif debug:
+        log.level = log.DEBUG
 
-        lockname = arguments.pop('--lockname', '')
-        if lockname is None:
+    lockname = arguments.pop('--lockname', '')
+    if lockname is None:
+        if isinstance(src, (list, tuple)):
+            names = [os.path.basename(s) for s in src]
+            lockname = '_'.join(names).lower()
+        else:
             lockname = path_re.sub('', src).lower()
 
-        instance = SingleInstance(flavor_id=lockname)
+    instance = SingleInstance(flavor_id=lockname)
 
-        src_format = None
-        if os.path.isfile(src):
-            converter_class = SingleRAWConverter
-            src_format = src.rpartition('.')[-1].lower()
-        else:
-            converter_class = RecursiveRAWConverter if recursive else DirectoryRAWConverter
+    src_format = None
+    if isinstance(src, (list, tuple)):
+        converter_class = MultipleRAWsConverter
+    elif os.path.isfile(src):
+        converter_class = SingleRAWConverter
+        src_format = src.rpartition('.')[-1].lower()
+    else:
+        converter_class = RecursiveRAWConverter if recursive else DirectoryRAWConverter
 
-        converter = converter_class(src_format=src_format, dst_dirname=tiff_dst, wb_mode=wb_mode, wb_source=wb_source)
-        blender = BatchTIFFBlender()
-        for tiffs in converter.process(src=src, force=force, clear=clear):
-            if tiffs:
-                blender.process(tiffs, os.path.join(tiffs[0].dirname, blend_dst), force=force, clear=clear)
+    converter = converter_class(src_format=src_format, dst_dirname=tiff_dst, wb_mode=wb_mode, wb_source=wb_source)
+    blender = BatchTIFFBlender()
+    for tiffs in converter.process(src=src, force=force, clear=clear):
+        if tiffs:
+            blender.process(tiffs, os.path.join(tiffs[0].dirname, blend_dst), force=force, clear=clear)

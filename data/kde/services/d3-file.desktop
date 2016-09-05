@@ -16,7 +16,7 @@ Encoding=UTF-8
 Name=Работа с конкретными изображениями
 
 [Desktop Action convert-file]
-Exec=konsole --hold -e d3-converter %f --force --verbose --wb=camera
+Exec=konsole --hold -e d3-converter %F --force --verbose --wb=camera
 Name[ru]=Конвертировать
 Name=Convert this file (camera WB)
 Comment[ru]=Конвертировать этот файл в TIFF

@@ -5,6 +5,7 @@ from .batch import BatchRAWConverter
 from .processor import (
     ImageProcessor,
     SingleImageProcessorMixin,
+    MultipleImagesProcessingMixin,
     DirectoryImageProcessorMixin,
     RecursiveImageProcessorMixin,
 )
@@ -24,6 +25,10 @@ class RAWConverter(ImageProcessor):
 
 
 class SingleRAWConverter(SingleImageProcessorMixin, RAWConverter):
+    pass
+
+
+class MultipleRAWsConverter(MultipleImagesProcessingMixin, RAWConverter):
     pass
 
 
