@@ -3,7 +3,7 @@
 """D3 Convert Daemon
 
 Usage:
-    d3-convert-daemon --src=<srcdir> [--tiff-dst=<dst_dirname>] [--blend-dst=<dst_dirname>] [--force] [--timeout=<n>] [--uid=<id>] [--gid=<id>] [--pidfile=<path>] [--verbose|--debug] [--logfile=<path>]
+    d3-convert-daemon <src> [--tiff-dst=<dst_dirname>] [--blend-dst=<dst_dirname>] [--force] [--timeout=<n>] [--uid=<id>] [--gid=<id>] [--pidfile=<path>] [--verbose|--debug] [--logfile=<path>]
     d3-convert-daemon (-h | --help)
     d3-convert-daemon --version
 
@@ -30,8 +30,8 @@ import time
 import traceback
 
 
-def main(src, tiff_dst, blend_dst, timeout, force):
-    timeout = 60 * timeout
+def main(src, tiff_dst, blend_dst, sleep_timeout, force):
+    sleep_timeout *= 60
     while True:
         #TODO: корректно перехватывать исключения
         try:
@@ -45,32 +45,29 @@ def main(src, tiff_dst, blend_dst, timeout, force):
             log.error(e)
             traceback.print_exc(limit=10)
 
-        time.sleep(timeout)
+        time.sleep(sleep_timeout)
+
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Convert Daemon v' + __version__)
 
-    src = arguments.pop('--src', None)
+    src = arguments.pop('<src>', None)
     if src is not None:
         src = os.path.realpath(src)
         daemon_name = path_re.sub('', src).lower()
 
-        tiff_dst = arguments.pop('--tiff-dst')
-        if tiff_dst is None:
-            tiff_dst = 'tiff'
-        blend_dst = arguments.pop('--blend-dst')
-        if blend_dst is None:
-            blend_dst = 'blend'
+        tiff_dst = arguments.pop('--tiff-dst') or 'tiff'
+        blend_dst = arguments.pop('--blend-dst') or 'blend'
 
         try:
-            timeout = int(arguments.pop('--timeout'))
+            timeout = int(arguments.pop('--timeout') or 1)
         except (TypeError, ValueError):
             timeout = 1
         else:
             if timeout < 1:
                 timeout = 1
 
-        force = arguments.pop('--force', False)
+        force = arguments.pop('--force')
         pidfile = arguments.pop('--pidfile')
         if not pidfile:
             pidfile = os.path.join('/run/d3-convert-daemon-{0}.pid'.format(daemon_name))
@@ -87,8 +84,8 @@ if __name__ == '__main__':
         except (TypeError, ValueError):
             gid = None
 
-        verbose = arguments.pop('--verbose', False)
-        debug = arguments.pop('--debug', False)
+        verbose = arguments.pop('--verbose')
+        debug = arguments.pop('--debug')
         if verbose:
             log.level = log.INFO
         elif debug:
@@ -98,7 +95,6 @@ if __name__ == '__main__':
         if logfile is None:
             logfile = '/var/log/d3/daemon-{0}.log'.format(daemon_name)
         logfile = io.open(logfile, 'a')
-
 
         context = daemon.DaemonContext(umask=0o002,
                                        uid=uid,

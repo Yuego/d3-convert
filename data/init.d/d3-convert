@@ -4,7 +4,7 @@
 # $Header: $
 
 command="/usr/bin/d3-convert-daemon"
-command_args="--src=${src}"
+command_args="${src}"
 
 pidpath="/run/d3-convert"
 pidfile="${pidpath}/${pidfile:-d3-convert-daemon.pid}"

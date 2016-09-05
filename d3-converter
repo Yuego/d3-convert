@@ -36,50 +36,31 @@ from d3_convert.utils import path_re
 from d3_convert.version import __version__
 from docopt import docopt
 import os
-import sys
 
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Converter v' + __version__)
 
-    kwargs = dict(
-        src=arguments.pop('<src>'),
-        tiff_dst=arguments.pop('--tiff-dst'),
-        blend_dst=arguments.pop('--blend-dst'),
-        wb=arguments.pop('--wb'),
-        force=arguments.pop('--force'),
-        clear=arguments.pop('--clear'),
-        recursive=arguments.pop('--recursive'),
-    )
-
-    src = arguments.pop('<src>', None)
+    src = arguments.pop('<src>') or ''
     if isinstance(src, (list, tuple)):
         src = [os.path.realpath(s) for s in src]
 
-    elif src is not None and src and src != '/':
+    elif src and src != '/':
         src = os.path.realpath(src)
     else:
-        log.warning('Некорректный источник: {0}'.format(src))
-        sys.exit(-1)
+        raise ValueError('Некорректный источник: {0}'.format(src))
 
-    tiff_dst = arguments.pop('--tiff-dst')
-    if tiff_dst is None:
-        tiff_dst = 'tiff'
-    blend_dst = arguments.pop('--blend-dst')
-    if blend_dst is None:
-        blend_dst = 'blend'
+    tiff_dst = arguments.pop('--tiff-dst') or 'tiff'
+    blend_dst = arguments.pop('--blend-dst') or 'blend'
 
-    wb_mode = arguments.pop('--wb')
-    if wb_mode is None:
-        wb_mode = 'camera'
+    wb_mode = wb = arguments.pop('--wb') or 'camera'
     wb_source = None
-    # TODO: довести до ума WB из конкретного файла
-    if False and wb_mode not in ['camera', 'auto']:
-        if not os.path.isfile(wb_mode):
-            raise Exception('Unknown WhiteBalance soure: {0}'.format(wb_mode))
+    if wb not in ['auto', 'camera', 'manual']:
+        if os.path.isfile(wb):
+            wb_mode = 'manual'
+            wb_source = wb
         else:
-            wb_source = wb_mode
-            wb = 'manual'
+            raise ValueError('Unknown WhiteBalance soure: {0}'.format(wb_mode))
 
     force = arguments.pop('--force')
     clear = arguments.pop('--clear')
@@ -92,8 +73,8 @@ if __name__ == '__main__':
     elif debug:
         log.level = log.DEBUG
 
-    lockname = arguments.pop('--lockname', '')
-    if lockname is None:
+    lockname = arguments.pop('--lockname')
+    if not lockname:
         if isinstance(src, (list, tuple)):
             names = [os.path.basename(s) for s in src]
             lockname = '_'.join(names).lower()
