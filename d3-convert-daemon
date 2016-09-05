@@ -3,7 +3,7 @@
 """D3 Convert Daemon
 
 Usage:
-    d3-convert-daemon <src> [--tiff-dst=<dst_dirname>] [--blend-dst=<dst_dirname>] [--force] [--timeout=<n>] [--uid=<id>] [--gid=<id>] [--pidfile=<path>] [--verbose|--debug] [--logfile=<path>]
+    d3-convert-daemon <src> [--tiff-dst=<tiff_dst_dirname>] [--blend-dst=<blend_dst_dirname>] [--force] [--timeout=<n>] [--uid=<id>] [--gid=<id>] [--pidfile=<path>] [--verbose|--debug] [--logfile=<path>]
     d3-convert-daemon (-h | --help)
     d3-convert-daemon --version
 
@@ -30,16 +30,16 @@ import time
 import traceback
 
 
-def main(src, tiff_dst, blend_dst, sleep_timeout, force):
+def main(src, tiff_dst, blend_dst, sleep_timeout, force, clear):
     sleep_timeout *= 60
     while True:
-        #TODO: корректно перехватывать исключения
+        # TODO: корректно перехватывать исключения
         try:
             converter = RecursiveRAWConverter(dst_dirname=tiff_dst, wb_mode='camera')
             blender = BatchTIFFBlender()
-            for tiffs in converter.process(src, force=force):
+            for tiffs in converter.process(src, force=force, clear=clear):
                 if tiffs:
-                    blender.process(tiffs, os.path.join(tiffs[0].dirname, blend_dst), force=force)
+                    blender.process(tiffs, os.path.join(tiffs[0].dirname, blend_dst), force=force, clear=clear)
 
         except Exception as e:
             log.error(e)
@@ -51,7 +51,7 @@ def main(src, tiff_dst, blend_dst, sleep_timeout, force):
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Convert Daemon v' + __version__)
 
-    src = arguments.pop('<src>', None)
+    src = arguments.pop('<src>')
     if src is not None:
         src = os.path.realpath(src)
         daemon_name = path_re.sub('', src).lower()
@@ -67,7 +67,6 @@ if __name__ == '__main__':
             if timeout < 1:
                 timeout = 1
 
-        force = arguments.pop('--force')
         pidfile = arguments.pop('--pidfile')
         if not pidfile:
             pidfile = os.path.join('/run/d3-convert-daemon-{0}.pid'.format(daemon_name))
@@ -96,14 +95,11 @@ if __name__ == '__main__':
             logfile = '/var/log/d3/daemon-{0}.log'.format(daemon_name)
         logfile = io.open(logfile, 'a')
 
-        context = daemon.DaemonContext(umask=0o002,
-                                       uid=uid,
-                                       gid=gid,
-                                       pidfile=pidfile,
-                                       working_directory=src,
-                                       #chroot_directory=src,
-                                       stdout=logfile,
-                                       stderr=logfile,
+        context = daemon.DaemonContext(umask=0o002, uid=uid, gid=gid, pidfile=pidfile, working_directory=src,
+                                       stdout=logfile, stderr=logfile,
+                                       detach_process=False,
                                        )
+
+        force = clear = False
         with context:
-            main(src, tiff_dst, blend_dst, timeout, force)
+            main(src, tiff_dst, blend_dst, timeout, force, clear)
