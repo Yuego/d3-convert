@@ -91,7 +91,7 @@ class ImageProcessor(ImageProcessorInterface):
                     try:
                         photo = Photo(fullpath, metadata=et.get_metadata(fullpath))
                     except (InvalidFile, UnknownCamera) as e:
-                        log.warning('Не могу прочесть EXIF из {0}. Пробуем JPG'.format(fullpath))
+                        log.warning('Не могу прочесть файл {0}. Пробуем JPG'.format(fullpath))
                         # FallBack to JPG
                         for _fn in filenames:
                             _filename, _, _ext = _fn.lower().rpartition('.')

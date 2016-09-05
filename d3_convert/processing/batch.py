@@ -25,6 +25,9 @@ class Batch(object):
     def get_queue(self, photos, dstpath, force=False, **kwargs):
         return Queue()
 
+    def get_threads_count(self, photos):
+        return cpus
+
     def get_worker_func(self):
         raise NotImplementedError()
 
@@ -54,7 +57,7 @@ class Batch(object):
             threads = [threading.Thread(
                 target=self.get_worker_func(),
                 kwargs=worker_kwargs,
-            ) for _ in range(cpus)]
+            ) for _ in range(self.get_threads_count(photos=src_photos))]
 
             for thread in threads:
                 thread.setDaemon(True)
@@ -132,14 +135,14 @@ class BatchTIFFBlender(Batch):
         :return: bool
         """
         half_len = length // 2
-        first_half = batch[0:half_len+1]
-        second_half = batch[::-1][0:half_len+1]
+        first_half = batch[0:half_len + 1]
+        second_half = batch[::-1][0:half_len + 1]
 
         first_subs = []
         second_subs = []
-        for i in range(0, half_len-1):
-            first_subs.append(first_half[i+1].bracket_value - first_half[i].bracket_value)
-            second_subs.append(second_half[i].bracket_value - second_half[i+1].bracket_value)
+        for i in range(0, half_len - 1):
+            first_subs.append(first_half[i + 1].bracket_value - first_half[i].bracket_value)
+            second_subs.append(second_half[i].bracket_value - second_half[i + 1].bracket_value)
         return first_subs == second_subs
 
     def check_dnb_bracketing(self, batch, length):
@@ -174,6 +177,15 @@ class BatchTIFFBlender(Batch):
         filename = get_blend_filename(dstpath=dstpath, batch=photos)
         filepath = os.path.join(dstpath, filename)
         return os.path.exists(filepath)
+
+    def get_threads_count(self, photos):
+        bracket_count = 1
+        for photo in photos:
+            if photo.is_bracketed:
+                bracket_count = photo.bracket_count
+                break
+                
+        return (cpus // bracket_count) * 2
 
     def get_worker_func(self):
         return blend_worker

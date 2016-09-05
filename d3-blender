@@ -3,7 +3,7 @@
 """D3 Blender
 
 Usage:
-    blend <src> [--dst=<dstdir>] [--force] [--verbose|--debug] [--lockname=<name>]
+    blend <src> [--dst=<dstdir>] [--force|--clear] [--verbose|--debug] [--lockname=<name>]
     blend (-h | --help)
     blend --version
 
@@ -31,30 +31,31 @@ import os
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='D3 Blender v' + __version__)
 
-    src = arguments.pop('<src>', None)
+    src = arguments.pop('<src>')
     if src is not None:
         src = os.path.realpath(src)
 
-        dst = arguments.pop('--dst', None)
+        dst = arguments.pop('--dst')
         if dst is None or dst == src:
             dst = os.path.join(src, 'blend')
 
-        force = arguments.pop('--force', False)
+        force = arguments.pop('--force')
+        clear = arguments.pop('--clear')
 
-        verbose = arguments.pop('--verbose', False)
-        debug = arguments.pop('--debug', False)
+        verbose = arguments.pop('--verbose')
+        debug = arguments.pop('--debug')
         if verbose:
             log.level = log.INFO
         elif debug:
             log.level = log.DEBUG
 
-        lockname = arguments.pop('--lockname', '')
-        if lockname is None:
+        lockname = arguments.pop('--lockname')
+        if not lockname:
             lockname = path_re.sub('', src).lower()
 
         instance = SingleInstance(flavor_id=lockname)
 
         blender = DirectoryTIFFBlender(dst_dirname=dst)
 
-        for blends in blender.process(src, force=force):
+        for blends in blender.process(src, force=force, clear=clear):
             pass

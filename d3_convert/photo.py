@@ -18,6 +18,10 @@ class Photo(object):
         self._filename = filename
         self._name = None
         self._type = None
+        try:
+            self._sec_number = int(seq_re.findall(self.filename)[0])
+        except IndexError:
+            raise InvalidFile('Image without sequence number')
 
         if isinstance(metadata, Photo):
             self.update_metadata(src_photo=metadata, excludes=exclude_tags)
@@ -92,7 +96,7 @@ class Photo(object):
 
     @property
     def seq_number(self):
-        return int(seq_re.findall(self.filename)[0])
+        return self._sec_number
 
     def __getitem__(self, item):
         if isinstance(item, slice):

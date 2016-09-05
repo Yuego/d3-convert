@@ -6,7 +6,7 @@ ServiceTypes=KonqPopupMenu/Plugin
 
 MimeType=image/jpeg;image/x-canon-cr2;
 
-Actions=convert-file;
+Actions=convert-files;
 X-KDE-Priority=TopLevel
 X-KDE-Submenu=RAW
 
@@ -15,10 +15,10 @@ Icon=luna
 Encoding=UTF-8
 Name=Работа с конкретными изображениями
 
-[Desktop Action convert-file]
-Exec=konsole --hold -e d3-converter %F --force --verbose --wb=camera
-Name[ru]=Конвертировать
-Name=Convert this file (camera WB)
-Comment[ru]=Конвертировать этот файл в TIFF
+[Desktop Action convert-files]
+Exec=konsole -e d3-converter %F --force --verbose --wb=camera
+Name[ru]=Конвертировать файлы (ББ камеры)
+Name=Convert files (camera WB)
+Comment[ru]=Конвертировать выбранные файлы в TIFF
 
 
