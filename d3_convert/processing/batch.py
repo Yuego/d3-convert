@@ -124,7 +124,6 @@ class BatchTIFFBlender(Batch):
         for i in range(0, length - 1):
                 if batch[i].seq_number + 1 != batch[i+1].seq_number:
                     return False
-
         return True
 
     def check_ndb_bracketing(self, batch, length):
@@ -184,7 +183,7 @@ class BatchTIFFBlender(Batch):
             if photo.is_bracketed:
                 bracket_count = photo.bracket_count
                 break
-                
+
         return (cpus // bracket_count) * 2
 
     def get_worker_func(self):
