@@ -4,10 +4,10 @@ from __future__ import unicode_literals, absolute_import
 import os
 
 from ..utils.compat import Empty
+from ..utils.process import Process
 from ..log import log
 from ..photo import BlendPhoto, TiffPhoto
 from .commands import blend_to_cmd, convert_jpg_to_cmd, convert_to_cmd, get_blend_filename
-from .process import Process
 
 
 remove_metadata_convert = (

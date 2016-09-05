@@ -1,4 +1,4 @@
 docopt
 lxml
 psutil>=2
-
+exiftool

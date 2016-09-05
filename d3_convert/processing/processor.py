@@ -9,9 +9,9 @@ import scandir
 from ..exceptions import *
 from ..log import log
 from ..photo import Photo
+from ..utils.lock import is_locked
 
 from .batch import Batch
-from .lock import is_locked
 
 
 class ImageProcessor(object):

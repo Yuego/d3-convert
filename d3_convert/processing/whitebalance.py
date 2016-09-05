@@ -5,8 +5,9 @@ from lxml import etree
 import os
 import glob
 
+from ..utils.process import Process
+
 from .commands import get_wb_cmd
-from .process import Process
 
 
 class WhiteBalance(object):
