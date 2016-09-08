@@ -9,7 +9,7 @@ from .processing.commands import copy_exif_to_cmd
 from .exceptions import InvalidFile, UnknownCamera
 from .utils.process import Process
 
-seq_re = re.compile(r'(\d{4,})')
+seq_re = re.compile(r'(\d{3,})')
 
 
 class Photo(object):
@@ -19,7 +19,7 @@ class Photo(object):
         self._name = None
         self._type = None
         try:
-            self._sec_number = int(seq_re.findall(self.filename)[0])
+            self._sec_number = self.get_seq_number(self.filename)
         except IndexError:
             raise InvalidFile('Image without sequence number')
 
@@ -93,6 +93,9 @@ class Photo(object):
         result = ' '.join([p.result, p.errors]).lower()
         if 'updated' not in result:
             raise RuntimeError('Can`t update EXIF info for: {0}'.format(self.filename))
+
+    def get_seq_number(self, filename):
+        return int(''.join(seq_re.findall(os.path.basename(filename))))
 
     @property
     def seq_number(self):

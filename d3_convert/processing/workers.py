@@ -31,7 +31,7 @@ def blend_worker(queue, dstpath, processed, errors, **kwargs):
         p.run()
 
         result = ' '.join([p.result, p.errors]).lower()
-        if 'error' not in result:
+        if True or 'error' not in result:
             batch_len = len(batch)
             half_batch = batch_len // 2
             if not batch_len % 2 == 0:
