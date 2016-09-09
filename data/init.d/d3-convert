@@ -1,4 +1,4 @@
-#!/sbin/runscript
+#!/sbin/openrc-run
 # Copyright 1999-2013 Gentoo Foundation
 # Distributed under the terms of the MIT License
 # $Header: $
@@ -6,7 +6,8 @@
 command="/usr/bin/d3-convert-daemon"
 command_args="${src}"
 
-pidfile="${pidfile:-/run/d3-convert-daemon.pid}"
+pidpath="${pidpath:-/run/d3-convert}"
+pidfile="${pidpath}/${pidfile:-d3-convert-daemon.pid}"
 uid=${uid:-0}
 gid=${gid:-0}
 if [ ! -z "${tiff_dst}" ]; then
@@ -19,7 +20,7 @@ if [ ! -z "${force}" ]; then
     command_args="${command_args} --force"
 fi
 timeout=${timeout:-1}
-logfile=${logfile:-/var/log/d3/convert-daemon.log}
+logfile=${logfile:-/var/log/d3-convert-daemon.log}
 if [ ! -z "${logmode}" ]; then
     command_args="${command_args} --${logmode}"
 fi
@@ -28,4 +29,6 @@ command_args="${command_args} --timeout=${timeout} --uid=${uid} --gid=${gid} --l
 
 start_pre() {
     checkpath -d -m 0750 -o "${uid}":"${gid}" "${pidpath}"
+    checkpath -f -m 0660 -o "${uid}":"${gid}" "${logfile}"
+    checkpath -d -m 0770 -o "${uid}":"${gid}" "${src}"
 }

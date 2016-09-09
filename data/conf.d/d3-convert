@@ -9,7 +9,8 @@ timeout="1"
 uid=1001
 gid=1001
 
-pidfile=""
+pidpath=""
+pidfile="d3-convert-daemon.pid"
 
-logfile=""
+logfile="/var/log/d3-convert-daemon.log"
 logmode="verbose"
