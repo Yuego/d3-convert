@@ -20,7 +20,7 @@ class Photo(object):
         self._type = None
         try:
             self._sec_number = self.get_seq_number(self.filename)
-        except IndexError:
+        except (IndexError, ValueError):
             raise InvalidFile('Image without sequence number')
 
         if isinstance(metadata, Photo):

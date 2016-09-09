@@ -30,5 +30,5 @@ command_args="${command_args} --timeout=${timeout} --uid=${uid} --gid=${gid} --l
 start_pre() {
     checkpath -d -m 0750 -o "${uid}":"${gid}" "${pidpath}"
     checkpath -f -m 0660 -o "${uid}":"${gid}" "${logfile}"
-    checkpath -d -m 0770 -o "${uid}":"${gid}" "${src}"
+    checkpath -d -m 0775 -o "${uid}":"${gid}" "${src}"
 }
