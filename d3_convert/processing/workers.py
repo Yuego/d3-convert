@@ -14,7 +14,7 @@ remove_metadata_convert = (
     'EXIF:Orientation',
 )
 remove_metadata_blend = remove_metadata_convert + (
-    'EXIF:Compression',
+    #'EXIF:Compression',
 )
 
 
